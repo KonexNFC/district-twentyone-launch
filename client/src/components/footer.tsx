@@ -4,9 +4,12 @@ export function Footer() {
   return (
     <footer className="border-t border-border py-8 px-4 pb-24 md:pb-8">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <span className="font-mono text-xs tracking-[0.3em] text-muted-foreground">
-          DISTRICT21
-        </span>
+        <img
+          src="/images/logo-wordmark.jpeg"
+          alt="DISTRICT21"
+          className="h-5 w-auto opacity-60"
+          data-testid="img-footer-logo"
+        />
         <div className="flex items-center gap-6 flex-wrap justify-center">
           <Link href="/about" data-testid="link-footer-about">
             <span className="text-xs tracking-[0.15em] text-muted-foreground hover:text-foreground transition-colors">

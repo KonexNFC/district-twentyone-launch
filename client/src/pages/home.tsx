@@ -50,19 +50,15 @@ export default function Home() {
         <div className="flex flex-col items-center gap-6 w-full max-w-2xl py-8">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="w-12 h-[1px] bg-foreground/20" />
-            <h1
-              className="font-mono text-4xl sm:text-5xl md:text-6xl font-bold tracking-[0.08em] uppercase"
-              data-testid="text-brand-h1"
-            >
-              DISTRICT21
-            </h1>
-            <p
-              className="text-xs sm:text-sm tracking-[0.4em] text-muted-foreground font-light uppercase"
-              data-testid="text-tagline"
-            >
-              THE UNIFORM OF NOW
-            </p>
-            <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase">
+            <h1 data-testid="text-brand-h1" className="sr-only">DISTRICT21 — THE UNIFORM OF NOW</h1>
+            <img
+              src="/images/logo-hero.jpeg"
+              alt="DISTRICT21 — THE UNIFORM OF NOW"
+              className="w-[70vw] max-w-md h-auto"
+              loading="eager"
+              data-testid="img-brand-logo"
+            />
+            <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase" data-testid="text-tagline">
               Drop 001 — Limited quantities. No restocks.
             </p>
             <div className="w-12 h-[1px] bg-foreground/20" />

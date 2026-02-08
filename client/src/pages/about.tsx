@@ -31,9 +31,10 @@ export default function About() {
           </p>
           <div className="flex flex-col items-center gap-2 py-4">
             <img
-              src="/images/logo-icon.jpeg"
-              alt="DISTRICT21 Icon"
-              className="w-16 h-auto opacity-80"
+              src="/images/logo-hero.jpeg"
+              alt="DISTRICT21 — THE UNIFORM OF NOW"
+              className="w-48 h-auto opacity-80"
+              data-testid="img-about-logo"
             />
           </div>
           <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
