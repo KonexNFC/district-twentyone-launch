@@ -6,12 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Bell } from "lucide-react";
 import type { DropSettings } from "@shared/schema";
 
-const teasers = [
-  { src: "/images/teaser-tee.png", label: "ESSENTIAL TEE" },
-  { src: "/images/teaser-pants.png", label: "CARGO PANT" },
-  { src: "/images/teaser-hoodie.png", label: "CORE HOODIE" },
-];
-
 export default function Drop() {
   usePageTitle("The Drop | DISTRICT21", "Exclusive limited edition drops from DISTRICT21. Get notified before they sell out.");
   const { data: settings, isLoading } = useQuery<DropSettings>({
@@ -54,6 +48,16 @@ export default function Drop() {
                 <span className="text-xs tracking-[0.3em] uppercase font-medium">Drop is live</span>
               </div>
 
+              <div className="w-full overflow-hidden bg-card">
+                <img
+                  src="/images/mockup-collection.png"
+                  alt="DISTRICT21 Collection"
+                  className="w-full h-auto object-contain"
+                  loading="lazy"
+                  data-testid="img-drop-collection"
+                />
+              </div>
+
               <p className="text-sm text-muted-foreground text-center max-w-sm leading-relaxed">
                 The collection is available now. Limited quantities.
                 Every piece is numbered. Once gone, gone forever.
@@ -93,18 +97,19 @@ export default function Drop() {
             <div className="flex flex-col items-center gap-10 w-full" data-testid="drop-pre-state">
               <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} />
 
-              <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
-                {teasers.map((item) => (
-                  <div key={item.label} className="aspect-[3/4] bg-card overflow-hidden">
-                    <img
-                      src={item.src}
-                      alt={item.label}
-                      className="w-full h-full object-cover grayscale opacity-60"
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
+              <div className="w-full overflow-hidden bg-card">
+                <img
+                  src="/images/mockup-horizontal.png"
+                  alt="DISTRICT21 Drop 001 Preview"
+                  className="w-full h-auto object-contain opacity-80"
+                  loading="lazy"
+                  data-testid="img-drop-preview"
+                />
               </div>
+
+              <p className="text-[10px] tracking-[0.3em] text-muted-foreground/50 uppercase text-center">
+                Freestyler &middot; Hypster &middot; Blaker &middot; Blaster 2.0 &middot; Gamechanger &middot; Voicer &middot; Ryler &middot; Thinker
+              </p>
 
               <div className="flex flex-col items-center gap-4 w-full">
                 <div className="flex items-center gap-2">
