@@ -285,7 +285,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/mockups/generate", requireAdmin, async (req, res) => {
     try {
-      const { silhouette, color, variation } = req.body;
+      const { silhouette, color, variation } = req.body || {};
 
       if (silhouette && color && variation) {
         const presets = await storage.getMockupPresetsBySilhouette(silhouette);
