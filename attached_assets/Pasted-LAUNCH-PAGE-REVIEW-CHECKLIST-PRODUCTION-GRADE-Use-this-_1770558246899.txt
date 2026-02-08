@@ -1,0 +1,104 @@
+LAUNCH PAGE REVIEW CHECKLIST (PRODUCTION-GRADE)
+
+Use this as a QA pass against your live build.
+
+1) Above-the-Fold (First Screen)
+
+Must be true:
+	•	H1: DISTRICT21 (large, high-contrast)
+	•	Subhead: THE UNIFORM OF NOW
+	•	One hero mockup (Freestyler with centre-chest wordmark)
+	•	Primary CTA: Join Waitlist (email + WhatsApp)
+	•	No scroll required to understand:
+	•	What the brand is
+	•	What’s dropping
+	•	What action to take
+
+Fix if missing:
+	•	Add a short line under the tagline:
+Drop 001 — Limited quantities. No restocks.
+
+⸻
+
+2) Visual Hierarchy
+
+Must be true:
+	•	Hero image is the visual anchor
+	•	Product teasers follow immediately
+	•	Black/white palette only
+	•	No clutter or stock photography
+
+Fix if weak:
+	•	Increase hero image width (60–70% container)
+	•	Reduce body copy
+	•	Add subtle divider between sections
+
+⸻
+
+3) CTA & Conversion
+
+Must be true:
+	•	Sticky primary CTA on mobile (bottom bar)
+	•	Button copy is action-led:
+	•	Join the waitlist
+	•	Get early access
+	•	Form friction minimal (email + WhatsApp only)
+
+Fix if weak:
+	•	Add inline validation
+	•	Add privacy microcopy under form:
+No spam. Drop alerts only.
+
+⸻
+
+4) Drop Mechanics
+
+Must be true:
+	•	Countdown timer visible pre-drop
+	•	State toggles:
+	•	Pre-drop → waitlist
+	•	Live → Shop Drop 001
+	•	Post-drop → Join next drop
+
+Fix if missing:
+	•	Implement a simple state flag in your config:
+
+export const DROP_STATE = 'pre'; // 'pre' | 'live' | 'post'
+
+5) Performance & Images
+
+Must be true:
+	•	Images served as WebP with responsive sizes
+	•	Lazy-load non-hero images
+	•	Mobile LCP < 2 seconds
+
+Fix if weak:
+	•	Use srcset or Next/Image
+	•	Compress hero to < 250KB
+	•	Defer analytics scripts
+
+⸻
+
+6) SEO & Social
+
+Must be true:
+	•	Meta title: DISTRICT21 — THE UNIFORM OF NOW | Drop 001
+	•	Meta description present
+	•	Open Graph image set (hero mockup)
+	•	Favicon uses Icon (C)
+
+Fix if missing:
+	•	Add meta tags in <head>
+	•	Add OG image (1600px WebP)
+
+⸻
+
+7) Trust & Legitimacy
+
+Must be true:
+	•	Contact method (email or WhatsApp)
+	•	Footer with brand name + year
+	•	Minimal About snippet
+
+Fix if weak:
+	•	Add footer mic

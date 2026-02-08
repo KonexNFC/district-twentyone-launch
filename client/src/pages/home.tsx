@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Countdown } from "@/components/countdown";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { StickyMobileCTA } from "@/components/sticky-mobile-cta";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { DropSettings, Mockup } from "@shared/schema";
 import { SILHOUETTES } from "@shared/schema";
 
@@ -16,8 +19,20 @@ const products = SILHOUETTES.map(s => ({
 
 const socialProof = ["HYPEBEAST", "HIGHSNOBIETY", "COMPLEX", "GQ", "SSENSE"];
 
+function getDropState(settings?: DropSettings | null): "pre" | "live" | "post" {
+  if (!settings) return "pre";
+  if (settings.isLive) return "live";
+  const dropDate = settings.dropDate ? new Date(settings.dropDate) : null;
+  if (dropDate && dropDate.getTime() < Date.now()) return "post";
+  return "pre";
+}
+
 export default function Home() {
-  usePageTitle("DISTRICT21 - THE UNIFORM OF NOW", "Join the DISTRICT21 waitlist. Limited edition fashion drops.");
+  usePageTitle(
+    "DISTRICT21 — THE UNIFORM OF NOW | Drop 001",
+    "Join the DISTRICT21 waitlist. Limited edition fashion drops. No restocks."
+  );
+
   const { data: settings } = useQuery<DropSettings>({
     queryKey: ["/api/drop-settings"],
   });
@@ -26,21 +41,21 @@ export default function Home() {
     queryKey: ["/api/mockups"],
   });
 
+  const dropState = getDropState(settings);
   const heroMockup = allMockups.find(m => m.silhouette === "freestyler" && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
 
   return (
     <div className="flex flex-col">
       <section className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-8 w-full max-w-xl py-12">
-          <div className="flex flex-col items-center gap-5 text-center">
-            <div className="w-16 h-[1px] bg-foreground/20" />
-            <img
-              src="/images/logo-hero.jpeg"
-              alt="DISTRICT21"
-              className="w-64 sm:w-80 md:w-96 h-auto"
-              data-testid="img-logo-hero"
-              loading="eager"
-            />
+        <div className="flex flex-col items-center gap-6 w-full max-w-2xl py-8">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="w-12 h-[1px] bg-foreground/20" />
+            <h1
+              className="font-mono text-4xl sm:text-5xl md:text-6xl font-bold tracking-[0.08em] uppercase"
+              data-testid="text-brand-h1"
+            >
+              DISTRICT21
+            </h1>
             <p
               className="text-xs sm:text-sm tracking-[0.4em] text-muted-foreground font-light uppercase"
               data-testid="text-tagline"
@@ -48,44 +63,85 @@ export default function Home() {
               THE UNIFORM OF NOW
             </p>
             <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase">
-              Limited drops. No restocks.
+              Drop 001 — Limited quantities. No restocks.
             </p>
-            <div className="w-16 h-[1px] bg-foreground/20" />
+            <div className="w-12 h-[1px] bg-foreground/20" />
           </div>
 
-          <div className="w-full">
-            <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} />
-          </div>
-
-          <div className="w-full flex flex-col items-center gap-4">
-            <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
-              Be first to know
-            </p>
-            <WaitlistForm />
-          </div>
-        </div>
-      </section>
-
-      {heroMockup && (
-        <section className="py-16 px-4 border-t border-border" data-testid="hero-mockup">
-          <div className="max-w-3xl mx-auto">
+          {heroMockup && (
             <Link href="/product/freestyler">
-              <div className="aspect-[4/5] sm:aspect-[3/4] md:aspect-[16/10] max-h-[600px] w-full bg-card overflow-hidden cursor-pointer">
+              <div
+                className="w-[65vw] max-w-lg aspect-[3/4] bg-card overflow-hidden cursor-pointer mx-auto"
+                data-testid="hero-mockup"
+              >
                 <img
                   src={heroMockup.filePath1024 || heroMockup.filePath640 || ""}
-                  alt={heroMockup.altText || "DISTRICT21 Freestyler"}
-                  className="w-full h-full object-contain p-6"
-                  loading="lazy"
+                  alt={heroMockup.altText || "DISTRICT21 Freestyler — Drop 001"}
+                  className="w-full h-full object-contain p-4"
+                  loading="eager"
                   data-testid="img-hero-mockup"
                 />
               </div>
             </Link>
-            <p className="text-center text-xs tracking-[0.2em] text-muted-foreground mt-3 uppercase">
-              Freestyler — Drop 001
-            </p>
+          )}
+
+          {!heroMockup && (
+            <div className="w-[65vw] max-w-lg aspect-[3/4] bg-card overflow-hidden mx-auto">
+              <img
+                src="/images/products/freestyler-black.jpg"
+                alt="DISTRICT21 Freestyler — Drop 001"
+                className="w-full h-full object-contain p-4"
+                loading="eager"
+                data-testid="img-hero-fallback"
+              />
+            </div>
+          )}
+
+          <div className="w-full flex flex-col items-center gap-6">
+            {dropState === "live" ? (
+              <div className="flex flex-col items-center gap-4" data-testid="home-live-state">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
+                  <span className="text-xs tracking-[0.3em] uppercase font-medium">Drop is live</span>
+                </div>
+                <Button
+                  asChild
+                  className="h-12 px-10 rounded-none tracking-[0.2em] text-sm font-medium"
+                  data-testid="button-shop-drop"
+                >
+                  <a href={settings?.shopifyUrl || "#"} target="_blank" rel="noopener noreferrer">
+                    SHOP DROP 001 <ExternalLink className="w-4 h-4 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            ) : dropState === "post" ? (
+              <div className="flex flex-col items-center gap-4 w-full" data-testid="home-post-state">
+                <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase">
+                  Drop 001 has ended
+                </p>
+                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
+                  Join the next drop
+                </p>
+                <WaitlistForm />
+                <p className="text-[10px] text-muted-foreground/50 tracking-wide">
+                  No spam. Drop alerts only.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4 w-full" data-testid="home-pre-state">
+                <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} />
+                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
+                  Get early access
+                </p>
+                <WaitlistForm />
+                <p className="text-[10px] text-muted-foreground/50 tracking-wide">
+                  No spam. Drop alerts only.
+                </p>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <section className="py-16 px-4 border-t border-border" data-testid="product-lineup">
         <div className="max-w-5xl mx-auto">
@@ -157,6 +213,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <StickyMobileCTA dropState={dropState} shopUrl={settings?.shopifyUrl} />
     </div>
   );
 }
