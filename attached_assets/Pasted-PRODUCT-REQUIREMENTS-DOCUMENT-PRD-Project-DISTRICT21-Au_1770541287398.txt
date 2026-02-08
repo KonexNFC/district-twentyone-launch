@@ -1,0 +1,178 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+Project: DISTRICT21 – Automated Mockup Generation & Website Integration
+Owner: DISTRICT21
+Objective: Programmatically source Stanley/Stella blank garment images, apply approved DISTRICT21 branding, generate web-ready mockups (20–24 assets), and integrate them into the homepage, drop page, and PDPs.
+
+⸻
+
+1) Goals & Success Metrics
+
+Primary Goals
+	•	Generate individual, web-ready mockups for each approved silhouette and design variation.
+	•	Maintain brand consistency across all assets.
+	•	Integrate mockups into the website (homepage, drop page, PDPs) with responsive images.
+
+KPIs
+	•	100% of required SKUs delivered (20–24 mockups).
+	•	Page load < 2s (mobile) with responsive images.
+	•	Zero visual inconsistencies (background, lighting, placement).
+	•	All assets delivered in WebP (3 sizes) + JPG fallback with alt text.
+
+⸻
+
+2) Scope (v1 MVP)
+
+Silhouettes to Source (Stanley/Stella official images)
+
+Tees: Freestyler, Hypster, Blaker, Blaster 2.0
+Hoodies: Gamechanger, Voicer
+Sweatshirts: Ryler, Thinker
+
+Image Requirements
+	•	Flat lay / cut-out preferred
+	•	Neutral background (white/light grey)
+	•	High resolution (min 2000px long edge)
+
+Note: If automated sourcing is blocked by site restrictions, allow admin upload of official images as inputs.
+
+⸻
+
+3) Design Application (Locked Rules)
+
+Tees
+	•	Standard Bold: Centre chest wordmark
+	•	Reduced + Tagline: Centre chest with “THE UNIFORM OF NOW”
+	•	Icon: Left chest only
+
+Hoodies & Sweatshirts
+	•	Left chest small icon OR centre chest wordmark
+	•	Inside neck tag not visible externally
+
+Rendering Requirements
+	•	Realistic print simulation (heat press / embroidery texture)
+	•	Natural fabric distortion and curvature
+	•	Consistent lighting and shadow across all assets
+
+⸻
+
+4) Mockup Generation Requirements
+
+Per Silhouette Variations (Drop 001)
+	•	Freestyler: Bold centre chest; Reduced + tagline; Icon left chest
+	•	Hypster: Same 3
+	•	Blaker: Same 3
+	•	Blaster 2.0: Same 3
+	•	Gamechanger: Wordmark; Icon
+	•	Voicer: Wordmark; Icon
+	•	Ryler: Wordmark; Icon
+	•	Thinker: Wordmark; Icon
+
+Total Output: ~20–24 mockups (one file per variation)
+
+⸻
+
+5) Export Requirements (Web-Ready)
+
+For each mockup generate:
+	•	WebP @ 1600px (hero)
+	•	WebP @ 1024px
+	•	WebP @ 640px
+	•	JPG fallback
+	•	Alt text + SKU labeling
+
+File Naming Convention
+
+d21-freestyler-bold-1600.webp
+d21-hypster-icon-1024.webp
+d21-blaker-tagline-640.webp
+d21-gamechanger-wordmark-1600.jpg
+
+Alt Text Pattern
+DISTRICT21 {silhouette} — {fit} — {colour} — {placement}
+Example:
+DISTRICT21 Freestyler oversized tee — black — centre chest wordmark
+
+⸻
+
+6) Website Integration
+
+Homepage
+	•	Hero: Best Freestyler mockup (one variation)
+	•	Carousel: 3–4 mix (Hypster, Blaker, Hoodie, Sweatshirt)
+
+Drop Page
+	•	Grid of all mockups
+	•	Each mockup clickable → PDP (Shopify link when live)
+
+Product Pages (PDP)
+	•	Hero image (primary mockup)
+	•	Image gallery (additional angles/variations)
+	•	Lazy loading for non-hero images
+
+⸻
+
+7) Quality & Consistency Rules (Non-Negotiable)
+	•	Same background across all assets (white/neutral)
+	•	Same shadow/light direction
+	•	Same print simulation method
+	•	Consistent crop and zoom ratios
+	•	Colour accuracy preserved
+	•	No visible mockup artefacts
+
+⸻
+
+8) Functional Requirements
+
+Admin Panel
+	•	Upload / replace blank images (if automated sourcing fails)
+	•	Upload brand assets (wordmark, icon, tagline lockup)
+	•	Configure placement presets per silhouette
+	•	Batch generate mockups
+	•	Export assets as a ZIP
+	•	Generate CSV with filenames + alt text
+
+Automation
+	•	Batch overlay engine for logo placements
+	•	Fabric warp/distortion simulation
+	•	Responsive export pipeline (WebP + JPG fallback)
+
+Storage
+	•	CDN-ready asset hosting
+	•	Folder structure per silhouette
+	•	Versioning for Drop 001
+
+⸻
+
+9) Non-Functional Requirements
+	•	Mobile-first performance
+	•	Responsive image delivery (srcset)
+	•	SEO metadata for PDP images
+	•	Accessibility: required alt text for all images
+	•	Error handling for missing inputs
+
+⸻
+
+10) Deliverables
+	•	20–24 web-ready mockups (3 WebP sizes + JPG fallback each)
+	•	ZIP archive of all assets
+	•	CSV manifest (SKU, filename, alt text, placement)
+	•	Integrated homepage, drop page, and PDP image components
+	•	Admin documentation
+
+⸻
+
+11) Milestones
+	•	Day 1: Input sourcing + admin upload tools
+	•	Day 2: Overlay engine + placement presets
+	•	Day 3: Batch export + optimisation
+	•	Day 4: Website integration (homepage, drop, PDPs)
+	•	Day 5: QA + deployment
+
+⸻
+
+READY-TO-PASTE REPLIT AI PROMPT
+
+Paste this verbatim into Replit AI:
+
+Build an automated mockup generation pipeline for a fashion brand (DISTRICT21). The system should accept Stanley/Stella blank garment images for Freestyler, Hypster, Blaker, Blaster 2.0, Gamechanger, Voicer, Ryler, and Thinker. Apply brand overlays per locked placement rules (tees: centre chest wordmark, reduced+tagline centre chest, icon left chest; hoodies/sweats: left chest icon or centre chest wordmark). Simulate realistic print/embroidery with fabric distortion and consistent lighting. Batch-export each mockup as WebP at 1600px, 1024px, 640px plus JPG fallback. Enforce naming conventions (e.g., d21-freestyler-bold-1600.webp) and generate alt text per SKU. Provide an admin panel to upload blanks and brand assets, configure placements, batch generate/export ZIP, and output a CSV manifest. Integrate responsive image galleries into homepage (hero + carousel), drop page (grid), and PDPs (hero + gallery). Optimise for mobile performance and accessibility.

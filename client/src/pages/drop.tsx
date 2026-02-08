@@ -1,26 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Countdown } from "@/components/countdown";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Bell } from "lucide-react";
-import type { DropSettings } from "@shared/schema";
+import type { DropSettings, Mockup } from "@shared/schema";
+import { SILHOUETTES } from "@shared/schema";
 
-const products = [
-  { id: "freestyler", name: "Freestyler", type: "Heavyweight Tee", black: "/images/products/freestyler-black.jpg", white: "/images/products/freestyler-white.jpg" },
-  { id: "hypster", name: "Hypster", type: "Boxy Tee", black: "/images/products/hypster-black.jpg", white: "/images/products/hypster-white.jpg" },
-  { id: "blaker", name: "Blaker", type: "Classic Tee", black: "/images/products/blaker-black.jpg", white: "/images/products/blaker-white.jpg" },
-  { id: "blaster2", name: "Blaster 2.0", type: "Oversized Tee", black: "/images/products/blaster2-black.jpg", white: "/images/products/blaster2-white.jpg" },
-  { id: "gamechanger", name: "Gamechanger", type: "Heavyweight Hood", black: "/images/products/gamechanger-black.jpg", white: "/images/products/gamechanger-white.jpg" },
-  { id: "voicer", name: "Voicer", type: "Relaxed Hood", black: "/images/products/voicer-black.jpg", white: "/images/products/voicer-white.jpg" },
-  { id: "ryler", name: "Ryler", type: "Classic Sweatshirt", black: "/images/products/ryler-black.jpg", white: "/images/products/ryler-white.jpg" },
-  { id: "thinker", name: "Thinker", type: "Premium Sweatshirt", black: "/images/products/thinker-black.jpg", white: "/images/products/thinker-white.jpg" },
-];
+const products = SILHOUETTES.map(s => ({
+  id: s.id,
+  name: s.name,
+  type: s.fit,
+  black: `/images/products/${s.id}-black.jpg`,
+  white: `/images/products/${s.id}-white.jpg`,
+}));
 
 export default function Drop() {
   usePageTitle("The Drop | DISTRICT21", "Exclusive limited edition drops from DISTRICT21. Get notified before they sell out.");
   const { data: settings, isLoading } = useQuery<DropSettings>({
     queryKey: ["/api/drop-settings"],
+  });
+
+  const { data: allMockups = [] } = useQuery<Mockup[]>({
+    queryKey: ["/api/mockups"],
   });
 
   if (isLoading) {
@@ -58,22 +61,16 @@ export default function Drop() {
                 <span className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
                 <span className="text-xs tracking-[0.3em] uppercase font-medium">Drop is live</span>
               </div>
-
               <p className="text-sm text-muted-foreground text-center max-w-sm leading-relaxed">
                 The collection is available now. Limited quantities.
                 Every piece is numbered. Once gone, gone forever.
               </p>
-
               <Button
                 asChild
                 className="h-12 px-10 rounded-none tracking-[0.2em] text-sm font-medium"
                 data-testid="button-shop-now"
               >
-                <a
-                  href={settings?.shopifyUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={settings?.shopifyUrl || "#"} target="_blank" rel="noopener noreferrer">
                   SHOP NOW <ExternalLink className="w-4 h-4 ml-2" />
                 </a>
               </Button>
@@ -97,7 +94,6 @@ export default function Drop() {
           ) : (
             <div className="flex flex-col items-center gap-8 w-full" data-testid="drop-pre-state">
               <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} />
-
               <div className="flex flex-col items-center gap-4 w-full">
                 <div className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-muted-foreground" />
@@ -122,36 +118,42 @@ export default function Drop() {
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col items-center gap-3 group"
-                data-testid={`drop-product-${item.id}`}
-              >
-                <div className="aspect-square w-full bg-card overflow-hidden relative">
-                  <img
-                    src={item.black}
-                    alt={`${item.name} - Black`}
-                    className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
-                    loading="lazy"
-                  />
-                  <img
-                    src={item.white}
-                    alt={`${item.name} - White`}
-                    className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                    loading="lazy"
-                  />
-                </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
-                    {item.name}
-                  </span>
-                  <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-                    {item.type}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {products.map((item) => {
+              const mockup = allMockups.find(m => m.silhouette === item.id && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
+              const mockupWhite = allMockups.find(m => m.silhouette === item.id && m.color === "white" && (m.variation === "bold" || m.variation === "wordmark"));
+
+              return (
+                <Link key={item.id} href={`/product/${item.id}`}>
+                  <div
+                    className="flex flex-col items-center gap-3 group cursor-pointer"
+                    data-testid={`drop-product-${item.id}`}
+                  >
+                    <div className="aspect-square w-full bg-card overflow-hidden relative">
+                      <img
+                        src={mockup?.filePath640 || item.black}
+                        alt={mockup?.altText || `${item.name} - Black`}
+                        className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+                        loading="lazy"
+                      />
+                      <img
+                        src={mockupWhite?.filePath640 || item.white}
+                        alt={mockupWhite?.altText || `${item.name} - White`}
+                        className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
+                        {item.name}
+                      </span>
+                      <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
+                        {item.type}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

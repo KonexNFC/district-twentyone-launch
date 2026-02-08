@@ -1,19 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Countdown } from "@/components/countdown";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { usePageTitle } from "@/hooks/use-page-title";
-import type { DropSettings } from "@shared/schema";
+import type { DropSettings, Mockup } from "@shared/schema";
+import { SILHOUETTES } from "@shared/schema";
 
-const products = [
-  { id: "freestyler", name: "Freestyler", type: "Heavyweight Tee", black: "/images/products/freestyler-black.jpg", white: "/images/products/freestyler-white.jpg" },
-  { id: "hypster", name: "Hypster", type: "Boxy Tee", black: "/images/products/hypster-black.jpg", white: "/images/products/hypster-white.jpg" },
-  { id: "blaker", name: "Blaker", type: "Classic Tee", black: "/images/products/blaker-black.jpg", white: "/images/products/blaker-white.jpg" },
-  { id: "blaster2", name: "Blaster 2.0", type: "Oversized Tee", black: "/images/products/blaster2-black.jpg", white: "/images/products/blaster2-white.jpg" },
-  { id: "gamechanger", name: "Gamechanger", type: "Heavyweight Hood", black: "/images/products/gamechanger-black.jpg", white: "/images/products/gamechanger-white.jpg" },
-  { id: "voicer", name: "Voicer", type: "Relaxed Hood", black: "/images/products/voicer-black.jpg", white: "/images/products/voicer-white.jpg" },
-  { id: "ryler", name: "Ryler", type: "Classic Sweatshirt", black: "/images/products/ryler-black.jpg", white: "/images/products/ryler-white.jpg" },
-  { id: "thinker", name: "Thinker", type: "Premium Sweatshirt", black: "/images/products/thinker-black.jpg", white: "/images/products/thinker-white.jpg" },
-];
+const products = SILHOUETTES.map(s => ({
+  id: s.id,
+  name: s.name,
+  type: s.fit,
+  black: `/images/products/${s.id}-black.jpg`,
+  white: `/images/products/${s.id}-white.jpg`,
+}));
 
 const socialProof = ["HYPEBEAST", "HIGHSNOBIETY", "COMPLEX", "GQ", "SSENSE"];
 
@@ -22,6 +21,12 @@ export default function Home() {
   const { data: settings } = useQuery<DropSettings>({
     queryKey: ["/api/drop-settings"],
   });
+
+  const { data: allMockups = [] } = useQuery<Mockup[]>({
+    queryKey: ["/api/mockups"],
+  });
+
+  const heroMockup = allMockups.find(m => m.silhouette === "freestyler" && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
 
   return (
     <div className="flex flex-col">
@@ -61,6 +66,27 @@ export default function Home() {
         </div>
       </section>
 
+      {heroMockup && (
+        <section className="py-16 px-4 border-t border-border" data-testid="hero-mockup">
+          <div className="max-w-3xl mx-auto">
+            <Link href="/product/freestyler">
+              <div className="aspect-[4/5] sm:aspect-[3/4] md:aspect-[16/10] max-h-[600px] w-full bg-card overflow-hidden cursor-pointer">
+                <img
+                  src={heroMockup.filePath1024 || heroMockup.filePath640 || ""}
+                  alt={heroMockup.altText || "DISTRICT21 Freestyler"}
+                  className="w-full h-full object-contain p-6"
+                  loading="lazy"
+                  data-testid="img-hero-mockup"
+                />
+              </div>
+            </Link>
+            <p className="text-center text-xs tracking-[0.2em] text-muted-foreground mt-3 uppercase">
+              Freestyler — Drop 001
+            </p>
+          </div>
+        </section>
+      )}
+
       <section className="py-16 px-4 border-t border-border" data-testid="product-lineup">
         <div className="max-w-5xl mx-auto">
           <p className="text-[10px] tracking-[0.5em] text-muted-foreground uppercase text-center mb-4">
@@ -71,38 +97,44 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col items-center gap-3 group"
-                data-testid={`product-card-${item.id}`}
-              >
-                <div className="aspect-square w-full bg-card overflow-hidden relative">
-                  <img
-                    src={item.black}
-                    alt={`${item.name} - Black`}
-                    className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
-                    loading="lazy"
-                    data-testid={`img-product-${item.id}-black`}
-                  />
-                  <img
-                    src={item.white}
-                    alt={`${item.name} - White`}
-                    className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                    loading="lazy"
-                    data-testid={`img-product-${item.id}-white`}
-                  />
-                </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
-                    {item.name}
-                  </span>
-                  <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-                    {item.type}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {products.map((item) => {
+              const mockup = allMockups.find(m => m.silhouette === item.id && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
+              const mockupWhite = allMockups.find(m => m.silhouette === item.id && m.color === "white" && (m.variation === "bold" || m.variation === "wordmark"));
+
+              return (
+                <Link key={item.id} href={`/product/${item.id}`}>
+                  <div
+                    className="flex flex-col items-center gap-3 group cursor-pointer"
+                    data-testid={`product-card-${item.id}`}
+                  >
+                    <div className="aspect-square w-full bg-card overflow-hidden relative">
+                      <img
+                        src={mockup?.filePath640 || item.black}
+                        alt={mockup?.altText || `${item.name} - Black`}
+                        className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+                        loading="lazy"
+                        data-testid={`img-product-${item.id}-black`}
+                      />
+                      <img
+                        src={mockupWhite?.filePath640 || item.white}
+                        alt={mockupWhite?.altText || `${item.name} - White`}
+                        className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                        loading="lazy"
+                        data-testid={`img-product-${item.id}-white`}
+                      />
+                    </div>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
+                        {item.name}
+                      </span>
+                      <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
+                        {item.type}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

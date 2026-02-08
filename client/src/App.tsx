@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import Drop from "@/pages/drop";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
+import Product from "@/pages/product";
 import AdminPage from "@/pages/admin";
 import { Nav } from "@/components/nav";
 import { Footer } from "@/components/footer";
@@ -39,6 +40,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/drop" component={Drop} />
+        <Route path="/product/:id" component={Product} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
         <Route component={NotFound} />
