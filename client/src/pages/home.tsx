@@ -5,9 +5,14 @@ import { usePageTitle } from "@/hooks/use-page-title";
 import type { DropSettings } from "@shared/schema";
 
 const products = [
-  { src: "/images/mockup-horizontal.png", label: "HORIZONTAL COLLECTION" },
-  { src: "/images/mockup-stacked.png", label: "STACKED COLLECTION" },
-  { src: "/images/mockup-icon.png", label: "ICON COLLECTION" },
+  { id: "freestyler", name: "Freestyler", type: "Heavyweight Tee", black: "/images/products/freestyler-black.jpg", white: "/images/products/freestyler-white.jpg" },
+  { id: "hypster", name: "Hypster", type: "Boxy Tee", black: "/images/products/hypster-black.jpg", white: "/images/products/hypster-white.jpg" },
+  { id: "blaker", name: "Blaker", type: "Classic Tee", black: "/images/products/blaker-black.jpg", white: "/images/products/blaker-white.jpg" },
+  { id: "blaster2", name: "Blaster 2.0", type: "Oversized Tee", black: "/images/products/blaster2-black.jpg", white: "/images/products/blaster2-white.jpg" },
+  { id: "gamechanger", name: "Gamechanger", type: "Heavyweight Hood", black: "/images/products/gamechanger-black.jpg", white: "/images/products/gamechanger-white.jpg" },
+  { id: "voicer", name: "Voicer", type: "Relaxed Hood", black: "/images/products/voicer-black.jpg", white: "/images/products/voicer-white.jpg" },
+  { id: "ryler", name: "Ryler", type: "Classic Sweatshirt", black: "/images/products/ryler-black.jpg", white: "/images/products/ryler-white.jpg" },
+  { id: "thinker", name: "Thinker", type: "Premium Sweatshirt", black: "/images/products/thinker-black.jpg", white: "/images/products/thinker-white.jpg" },
 ];
 
 const socialProof = ["HYPEBEAST", "HIGHSNOBIETY", "COMPLEX", "GQ", "SSENSE"];
@@ -65,32 +70,39 @@ export default function Home() {
             Tees &middot; Hoodies &middot; Sweatshirts
           </p>
 
-          <div className="flex flex-col gap-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
             {products.map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-4">
-                <div className="w-full overflow-hidden bg-card">
+              <div
+                key={item.id}
+                className="flex flex-col items-center gap-3 group"
+                data-testid={`product-card-${item.id}`}
+              >
+                <div className="aspect-square w-full bg-card overflow-hidden relative">
                   <img
-                    src={item.src}
-                    alt={item.label}
-                    className="w-full h-auto object-contain"
+                    src={item.black}
+                    alt={`${item.name} - Black`}
+                    className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
                     loading="lazy"
-                    data-testid={`img-product-${item.label.toLowerCase().replace(/\s/g, "-")}`}
+                    data-testid={`img-product-${item.id}-black`}
+                  />
+                  <img
+                    src={item.white}
+                    alt={`${item.name} - White`}
+                    className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    loading="lazy"
+                    data-testid={`img-product-${item.id}-white`}
                   />
                 </div>
-                <span className="text-[10px] sm:text-xs tracking-[0.3em] text-muted-foreground/60 uppercase">
-                  {item.label}
-                </span>
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
+                    {item.name}
+                  </span>
+                  <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
+                    {item.type}
+                  </span>
+                </div>
               </div>
             ))}
-          </div>
-
-          <div className="flex flex-col items-center gap-2 mt-12">
-            <p className="text-[10px] tracking-[0.3em] text-muted-foreground/50 uppercase">
-              Manufactured by
-            </p>
-            <p className="text-xs tracking-[0.2em] text-muted-foreground/70 font-medium">
-              STANLEY/STELLA x DISTRICT21
-            </p>
           </div>
         </div>
       </section>
