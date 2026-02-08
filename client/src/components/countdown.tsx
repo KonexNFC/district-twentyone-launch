@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 interface CountdownProps {
   targetDate: string | null;
+  variant?: "default" | "hero";
 }
 
 interface TimeLeft {
@@ -22,7 +23,8 @@ function calcTimeLeft(target: string): TimeLeft {
   };
 }
 
-export function Countdown({ targetDate }: CountdownProps) {
+export function Countdown({ targetDate, variant = "default" }: CountdownProps) {
+  const isHero = variant === "hero";
   const [time, setTime] = useState<TimeLeft>(
     targetDate ? calcTimeLeft(targetDate) : { days: 0, hours: 0, minutes: 0, seconds: 0 }
   );
@@ -38,7 +40,7 @@ export function Countdown({ targetDate }: CountdownProps) {
   if (!targetDate) {
     return (
       <div className="text-center py-8">
-        <p className="text-xs tracking-[0.3em] text-muted-foreground uppercase">Drop date coming soon</p>
+        <p className={`text-xs tracking-[0.3em] uppercase ${isHero ? "text-white/60" : "text-muted-foreground"}`}>Drop date coming soon</p>
       </div>
     );
   }
@@ -55,15 +57,15 @@ export function Countdown({ targetDate }: CountdownProps) {
       {blocks.map((block, i) => (
         <div key={block.label} className="flex items-center gap-3 sm:gap-4">
           <div className="flex flex-col items-center">
-            <span className="font-mono text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight tabular-nums">
+            <span className={`font-mono text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight tabular-nums ${isHero ? "text-white" : ""}`}>
               {String(block.value).padStart(2, "0")}
             </span>
-            <span className="text-[10px] sm:text-xs tracking-[0.3em] text-muted-foreground mt-2">
+            <span className={`text-[10px] sm:text-xs tracking-[0.3em] mt-2 ${isHero ? "text-white/50" : "text-muted-foreground"}`}>
               {block.label}
             </span>
           </div>
           {i < blocks.length - 1 && (
-            <span className="font-mono text-2xl sm:text-4xl md:text-5xl font-light text-muted-foreground self-start mt-1">
+            <span className={`font-mono text-2xl sm:text-4xl md:text-5xl font-light self-start mt-1 ${isHero ? "text-white/30" : "text-muted-foreground"}`}>
               :
             </span>
           )}

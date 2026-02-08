@@ -11,7 +11,7 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - **Analytics**: PostHog (optional, provide VITE_POSTHOG_KEY env var)
 
 ## Pages
-- `/` - Home: H1 "DISTRICT21", tagline, hero mockup (65vw anchor), drop state toggle (pre/live/post), inline waitlist with privacy microcopy, sticky mobile CTA, product grid, social proof
+- `/` - Home: Full-viewport editorial lifestyle hero banner with dark wash overlay, DISTRICT21 logo + tagline overlaid, drop state toggle (pre/live/post), inline waitlist with privacy microcopy, sticky mobile CTA, product grid, social proof
 - `/drop` - Drop: Pre-drop state (countdown + notify CTA) / Live (shop link) / Post-drop (join next drop), product grid
 - `/product/:id` - Product Detail Page (PDP): Hero image, gallery, product details, waitlist/shop CTA
 - `/about` - About: Brand story and stats
@@ -74,3 +74,5 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - 2026-02-08: Product Detail Pages (PDPs) with gallery, product info, and generated mockup integration
 - 2026-02-08: Admin panel extensions (brand asset upload, mockup generator, export tools)
 - 2026-02-08: Production QA pass — H1 heading, hero mockup anchor, drop state toggle (pre/live/post), sticky mobile CTA, SEO/OG tags, favicon, privacy microcopy, footer brand+year
+- 2026-02-08: New brand logo deployed across all pages (nav, footer, homepage, about, favicon, OG image, mockup engine defaults)
+- 2026-02-08: Editorial lifestyle hero banner — full-viewport background image with dark gradient wash, white logo/text overlay, hero-variant styling for WaitlistForm and Countdown components

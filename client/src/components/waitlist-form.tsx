@@ -19,7 +19,8 @@ const waitlistSchema = z.object({
 
 type WaitlistData = z.infer<typeof waitlistSchema>;
 
-export function WaitlistForm() {
+export function WaitlistForm({ variant = "default" }: { variant?: "default" | "hero" }) {
+  const isHero = variant === "hero";
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
@@ -49,11 +50,11 @@ export function WaitlistForm() {
   if (submitted) {
     return (
       <div className="flex flex-col items-center gap-3 py-6" data-testid="waitlist-success">
-        <div className="w-10 h-10 rounded-full border border-foreground flex items-center justify-center">
+        <div className={`w-10 h-10 rounded-full border flex items-center justify-center ${isHero ? "border-white text-white" : "border-foreground"}`}>
           <Check className="w-5 h-5" />
         </div>
-        <p className="text-sm tracking-[0.15em] uppercase">You're on the list</p>
-        <p className="text-xs text-muted-foreground">We'll notify you before the drop.</p>
+        <p className={`text-sm tracking-[0.15em] uppercase ${isHero ? "text-white" : ""}`}>You're on the list</p>
+        <p className={`text-xs ${isHero ? "text-white/60" : "text-muted-foreground"}`}>We'll notify you before the drop.</p>
       </div>
     );
   }
@@ -75,7 +76,7 @@ export function WaitlistForm() {
                   {...field}
                   type="email"
                   placeholder="EMAIL ADDRESS"
-                  className="bg-transparent border-foreground/20 text-sm tracking-[0.1em] placeholder:text-muted-foreground/50 placeholder:tracking-[0.15em] h-12 rounded-none"
+                  className={`bg-transparent text-sm tracking-[0.1em] rounded-none ${isHero ? "border-white/30 text-white placeholder:text-white/40 placeholder:tracking-[0.15em]" : "border-foreground/20 placeholder:text-muted-foreground/50 placeholder:tracking-[0.15em]"}`}
                   data-testid="input-email"
                 />
               </FormControl>
@@ -93,7 +94,7 @@ export function WaitlistForm() {
                   {...field}
                   type="tel"
                   placeholder="WHATSAPP (OPTIONAL)"
-                  className="bg-transparent border-foreground/20 text-sm tracking-[0.1em] placeholder:text-muted-foreground/50 placeholder:tracking-[0.15em] h-12 rounded-none"
+                  className={`bg-transparent text-sm tracking-[0.1em] rounded-none ${isHero ? "border-white/30 text-white placeholder:text-white/40 placeholder:tracking-[0.15em]" : "border-foreground/20 placeholder:text-muted-foreground/50 placeholder:tracking-[0.15em]"}`}
                   data-testid="input-whatsapp"
                 />
               </FormControl>
@@ -115,7 +116,7 @@ export function WaitlistForm() {
                 />
               </FormControl>
               <div className="flex flex-col gap-0.5">
-                <label className="text-[11px] text-muted-foreground leading-snug cursor-pointer" onClick={() => field.onChange(!field.value)}>
+                <label className={`text-[11px] leading-snug cursor-pointer ${isHero ? "text-white/50" : "text-muted-foreground"}`} onClick={() => field.onChange(!field.value)}>
                   I agree to receive marketing communications from DISTRICT21. You can unsubscribe at any time.
                 </label>
                 <FormMessage />
@@ -126,7 +127,8 @@ export function WaitlistForm() {
         <Button
           type="submit"
           disabled={mutation.isPending}
-          className="h-12 rounded-none tracking-[0.2em] text-sm font-medium"
+          variant={isHero ? "outline" : "default"}
+          className={`rounded-none tracking-[0.2em] text-sm font-medium ${isHero ? "border-white text-white bg-white/10 backdrop-blur-sm" : ""}`}
           data-testid="button-join-waitlist"
         >
           {mutation.isPending ? (

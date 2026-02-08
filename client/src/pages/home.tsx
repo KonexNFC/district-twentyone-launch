@@ -46,63 +46,44 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      <section className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-6 w-full max-w-2xl py-8">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <div className="w-12 h-[1px] bg-foreground/20" />
+      <section className="relative min-h-[100vh] flex flex-col items-center justify-center" data-testid="hero-banner">
+        <img
+          src="/images/hero-editorial.png"
+          alt="DISTRICT21 editorial — street culture lifestyle"
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+          data-testid="img-hero-editorial"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/80" />
+
+        <div className="relative z-10 flex flex-col items-center gap-8 w-full max-w-2xl px-4 py-16">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-12 h-[1px] bg-white/30" />
             <h1 data-testid="text-brand-h1" className="sr-only">DISTRICT21 — THE UNIFORM OF NOW</h1>
             <img
               src="/images/logo-hero.jpeg"
               alt="DISTRICT21 — THE UNIFORM OF NOW"
-              className="w-[70vw] max-w-md h-auto"
+              className="w-[70vw] max-w-md h-auto invert brightness-200"
               loading="eager"
               data-testid="img-brand-logo"
             />
-            <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase" data-testid="text-tagline">
+            <p className="text-xs tracking-[0.2em] text-white/60 uppercase" data-testid="text-tagline">
               Drop 001 — Limited quantities. No restocks.
             </p>
-            <div className="w-12 h-[1px] bg-foreground/20" />
+            <div className="w-12 h-[1px] bg-white/30" />
           </div>
-
-          {heroMockup && (
-            <Link href="/product/freestyler">
-              <div
-                className="w-[65vw] max-w-lg aspect-[3/4] bg-card overflow-hidden cursor-pointer mx-auto"
-                data-testid="hero-mockup"
-              >
-                <img
-                  src={heroMockup.filePath1024 || heroMockup.filePath640 || ""}
-                  alt={heroMockup.altText || "DISTRICT21 Freestyler — Drop 001"}
-                  className="w-full h-full object-contain p-4"
-                  loading="eager"
-                  data-testid="img-hero-mockup"
-                />
-              </div>
-            </Link>
-          )}
-
-          {!heroMockup && (
-            <div className="w-[65vw] max-w-lg aspect-[3/4] bg-card overflow-hidden mx-auto">
-              <img
-                src="/images/products/freestyler-black.jpg"
-                alt="DISTRICT21 Freestyler — Drop 001"
-                className="w-full h-full object-contain p-4"
-                loading="eager"
-                data-testid="img-hero-fallback"
-              />
-            </div>
-          )}
 
           <div className="w-full flex flex-col items-center gap-6">
             {dropState === "live" ? (
               <div className="flex flex-col items-center gap-4" data-testid="home-live-state">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
-                  <span className="text-xs tracking-[0.3em] uppercase font-medium">Drop is live</span>
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span className="text-xs tracking-[0.3em] uppercase font-medium text-white">Drop is live</span>
                 </div>
                 <Button
                   asChild
-                  className="h-12 px-10 rounded-none tracking-[0.2em] text-sm font-medium"
+                  variant="outline"
+                  className="rounded-none tracking-[0.2em] text-sm font-medium border-white text-white bg-white/10 backdrop-blur-sm"
                   data-testid="button-shop-drop"
                 >
                   <a href={settings?.shopifyUrl || "#"} target="_blank" rel="noopener noreferrer">
@@ -112,25 +93,25 @@ export default function Home() {
               </div>
             ) : dropState === "post" ? (
               <div className="flex flex-col items-center gap-4 w-full" data-testid="home-post-state">
-                <p className="text-xs tracking-[0.2em] text-muted-foreground/70 uppercase">
+                <p className="text-xs tracking-[0.2em] text-white/50 uppercase">
                   Drop 001 has ended
                 </p>
-                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
+                <p className="text-xs tracking-[0.25em] text-white/70 uppercase">
                   Join the next drop
                 </p>
-                <WaitlistForm />
-                <p className="text-[10px] text-muted-foreground/50 tracking-wide">
+                <WaitlistForm variant="hero" />
+                <p className="text-[10px] text-white/40 tracking-wide">
                   No spam. Drop alerts only.
                 </p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 w-full" data-testid="home-pre-state">
-                <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} />
-                <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
+                <Countdown targetDate={settings?.dropDate ? String(settings.dropDate) : null} variant="hero" />
+                <p className="text-xs tracking-[0.25em] text-white/70 uppercase">
                   Get early access
                 </p>
-                <WaitlistForm />
-                <p className="text-[10px] text-muted-foreground/50 tracking-wide">
+                <WaitlistForm variant="hero" />
+                <p className="text-[10px] text-white/40 tracking-wide">
                   No spam. Drop alerts only.
                 </p>
               </div>
