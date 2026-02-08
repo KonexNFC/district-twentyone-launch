@@ -7,23 +7,22 @@ const PUBLIC_DIR = path.resolve(process.cwd(), "client/public");
 const PRODUCTS_DIR = path.join(PUBLIC_DIR, "images/products");
 const GENERATED_DIR = path.join(PUBLIC_DIR, "generated");
 const BRAND_ASSETS_DIR = path.join(PUBLIC_DIR, "uploads/brand-assets");
-const OVERLAYS_DIR = path.join(PUBLIC_DIR, "images/overlays");
 
 const EXPORT_SIZES = [1600, 1024, 640] as const;
 
 const DEFAULT_PLACEMENTS: Record<string, Record<string, Placement>> = {
   tee: {
-    bold: { x: 0.15, y: 0.28, width: 0.7, height: 0.08, opacity: 0.92 },
-    tagline: { x: 0.15, y: 0.26, width: 0.7, height: 0.14, opacity: 0.92 },
-    icon: { x: 0.18, y: 0.3, width: 0.14, height: 0.06, opacity: 0.92 },
+    bold: { x: 0.25, y: 0.22, width: 0.5, height: 0.12, opacity: 0.88 },
+    tagline: { x: 0.28, y: 0.2, width: 0.44, height: 0.16, opacity: 0.88 },
+    icon: { x: 0.15, y: 0.22, width: 0.15, height: 0.08, opacity: 0.88 },
   },
   hoodie: {
-    wordmark: { x: 0.18, y: 0.34, width: 0.64, height: 0.07, opacity: 0.92 },
-    icon: { x: 0.22, y: 0.36, width: 0.12, height: 0.05, opacity: 0.92 },
+    wordmark: { x: 0.25, y: 0.28, width: 0.5, height: 0.1, opacity: 0.88 },
+    icon: { x: 0.15, y: 0.28, width: 0.15, height: 0.08, opacity: 0.88 },
   },
   sweatshirt: {
-    wordmark: { x: 0.18, y: 0.32, width: 0.64, height: 0.07, opacity: 0.92 },
-    icon: { x: 0.22, y: 0.34, width: 0.12, height: 0.05, opacity: 0.92 },
+    wordmark: { x: 0.25, y: 0.26, width: 0.5, height: 0.1, opacity: 0.88 },
+    icon: { x: 0.15, y: 0.26, width: 0.15, height: 0.08, opacity: 0.88 },
   },
 };
 
@@ -33,8 +32,7 @@ function getVariationsForType(type: string): readonly string[] {
 }
 
 function getAssetTypeForVariation(variation: string): string {
-  if (variation === "bold") return "bold";
-  if (variation === "wordmark") return "wordmark";
+  if (variation === "bold" || variation === "wordmark") return "wordmark";
   if (variation === "tagline") return "tagline";
   return "icon";
 }
@@ -57,36 +55,27 @@ function getAltText(silhouette: typeof SILHOUETTES[number], color: string, varia
 }
 
 async function getOverlayAsset(assetType: string, color: string): Promise<Buffer | null> {
-  const overlayColor = color === "black" ? "white" : "black";
-
-  const uploadedDir = BRAND_ASSETS_DIR;
+  const assetDir = BRAND_ASSETS_DIR;
   try {
-    await fs.access(uploadedDir);
-    const files = await fs.readdir(uploadedDir);
-    const match = files.find(f => f.startsWith(`${assetType}-`));
-    if (match) {
-      const buf = await fs.readFile(path.join(uploadedDir, match));
-      return sharp(buf).ensureAlpha().toBuffer();
+    await fs.access(assetDir);
+  } catch {
+    return getDefaultOverlay(assetType, color);
+  }
+
+  const files = await fs.readdir(assetDir);
+  const match = files.find(f => f.startsWith(`${assetType}-`));
+  if (match) {
+    const buf = await fs.readFile(path.join(assetDir, match));
+    let pipeline = sharp(buf);
+    if (color === "black") {
+      pipeline = pipeline.negate({ alpha: false });
     }
-  } catch {}
-
-  const overlayPath = path.join(OVERLAYS_DIR, `${assetType}-${overlayColor}.png`);
-  try {
-    const buf = await fs.readFile(overlayPath);
-    return sharp(buf).ensureAlpha().toBuffer();
-  } catch {}
-
+    return pipeline.ensureAlpha().toBuffer();
+  }
   return getDefaultOverlay(assetType, color);
 }
 
 async function getDefaultOverlay(assetType: string, color: string): Promise<Buffer | null> {
-  const overlayColor = color === "black" ? "white" : "black";
-  const overlayPath = path.join(OVERLAYS_DIR, `${assetType}-${overlayColor}.png`);
-  try {
-    const buf = await fs.readFile(overlayPath);
-    return sharp(buf).ensureAlpha().toBuffer();
-  } catch {}
-
   const logoFiles: Record<string, string> = {
     wordmark: path.join(PUBLIC_DIR, "images/logo-wordmark.jpeg"),
     icon: path.join(PUBLIC_DIR, "images/logo-icon.jpeg"),
@@ -99,9 +88,11 @@ async function getDefaultOverlay(assetType: string, color: string): Promise<Buff
   try {
     const buf = await fs.readFile(filePath);
     let pipeline = sharp(buf);
+
     if (color === "black") {
       pipeline = pipeline.negate({ alpha: false });
     }
+
     return pipeline.toBuffer();
   } catch {
     return null;
