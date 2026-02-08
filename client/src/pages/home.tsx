@@ -6,7 +6,7 @@ import { StickyMobileCTA } from "@/components/sticky-mobile-cta";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { DropSettings } from "@shared/schema";
+import type { DropSettings, Mockup } from "@shared/schema";
 import { SILHOUETTES } from "@shared/schema";
 
 const products = SILHOUETTES.map(s => ({
@@ -37,7 +37,12 @@ export default function Home() {
     queryKey: ["/api/drop-settings"],
   });
 
+  const { data: allMockups = [] } = useQuery<Mockup[]>({
+    queryKey: ["/api/mockups"],
+  });
+
   const dropState = getDropState(settings);
+  const heroMockup = allMockups.find(m => m.silhouette === "freestyler" && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
 
   return (
     <div className="flex flex-col">
@@ -126,6 +131,9 @@ export default function Home() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
             {products.map((item) => {
+              const mockup = allMockups.find(m => m.silhouette === item.id && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
+              const mockupWhite = allMockups.find(m => m.silhouette === item.id && m.color === "white" && (m.variation === "bold" || m.variation === "wordmark"));
+
               return (
                 <Link key={item.id} href={`/product/${item.id}`}>
                   <div
@@ -134,15 +142,15 @@ export default function Home() {
                   >
                     <div className="aspect-square w-full bg-card overflow-hidden relative">
                       <img
-                        src={item.black}
-                        alt={`DISTRICT21 ${item.name} — Black`}
+                        src={mockup?.filePath640 || item.black}
+                        alt={mockup?.altText || `${item.name} - Black`}
                         className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
                         loading="lazy"
                         data-testid={`img-product-${item.id}-black`}
                       />
                       <img
-                        src={item.white}
-                        alt={`DISTRICT21 ${item.name} — White`}
+                        src={mockupWhite?.filePath640 || item.white}
+                        alt={mockupWhite?.altText || `${item.name} - White`}
                         className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                         loading="lazy"
                         data-testid={`img-product-${item.id}-white`}
