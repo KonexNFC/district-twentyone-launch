@@ -5,8 +5,8 @@ import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ChevronLeft, Bell } from "lucide-react";
 import { Link } from "wouter";
-import { SILHOUETTES } from "@shared/schema";
-import type { Mockup, DropSettings } from "@shared/schema";
+import { SILHOUETTES, TEE_VARIATIONS, HOODIE_SWEAT_VARIATIONS } from "@shared/schema";
+import type { DropSettings } from "@shared/schema";
 
 export default function Product() {
   const { id } = useParams<{ id: string }>();
@@ -16,10 +16,6 @@ export default function Product() {
     silhouette ? `${silhouette.name} | DISTRICT21` : "Product | DISTRICT21",
     silhouette ? `DISTRICT21 ${silhouette.name} — ${silhouette.fit}. Limited edition.` : "DISTRICT21 product"
   );
-
-  const { data: mockupList = [], isLoading } = useQuery<Mockup[]>({
-    queryKey: ["/api/mockups", id],
-  });
 
   const { data: settings } = useQuery<DropSettings>({
     queryKey: ["/api/drop-settings"],
@@ -39,18 +35,12 @@ export default function Product() {
   }
 
   const isLive = settings?.isLive;
-  const hasMockups = mockupList.length > 0;
-
-  const heroMockup = mockupList.find(m => m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
-  const allVariations = mockupList.reduce<Record<string, Mockup[]>>((acc, m) => {
-    const key = `${m.variation}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(m);
-    return acc;
-  }, {});
+  const variations = silhouette.type === "tee" ? TEE_VARIATIONS : HOODIE_SWEAT_VARIATIONS;
 
   const fallbackBlack = `/images/products/${id}-black.jpg`;
   const fallbackWhite = `/images/products/${id}-white.jpg`;
+  const modelBlack = `/images/products/model-black.jpg`;
+  const modelWhite = `/images/products/model-white.jpg`;
 
   return (
     <div className="flex flex-col">
@@ -65,39 +55,27 @@ export default function Product() {
           <div className="flex flex-col gap-4">
             <div className="aspect-[4/5] w-full bg-card overflow-hidden" data-testid="pdp-hero-image">
               <img
-                src={heroMockup?.filePath1024 || heroMockup?.filePath640 || fallbackBlack}
-                alt={heroMockup?.altText || `DISTRICT21 ${silhouette.name}`}
+                src={fallbackBlack}
+                alt={`DISTRICT21 ${silhouette.name} — ${silhouette.fit}`}
                 className="w-full h-full object-contain p-4"
                 loading="eager"
               />
             </div>
 
-            {hasMockups && (
-              <div className="grid grid-cols-4 gap-2" data-testid="pdp-image-gallery">
-                {mockupList.slice(0, 8).map((m) => (
-                  <div key={m.id} className="aspect-[4/5] bg-card overflow-hidden cursor-pointer border border-transparent hover:border-foreground/20 transition-colors">
-                    <img
-                      src={m.filePath640 || ""}
-                      alt={m.altText || ""}
-                      className="w-full h-full object-contain p-1"
-                      loading="lazy"
-                      data-testid={`pdp-thumb-${m.id}`}
-                    />
-                  </div>
-                ))}
+            <div className="grid grid-cols-4 gap-2" data-testid="pdp-image-gallery">
+              <div className="aspect-[4/5] bg-card overflow-hidden cursor-pointer border border-transparent hover:border-foreground/20 transition-colors">
+                <img src={fallbackBlack} alt={`${silhouette.name} Black — flat lay`} className="w-full h-full object-contain p-1" loading="lazy" data-testid="pdp-thumb-flatlay-black" />
               </div>
-            )}
-
-            {!hasMockups && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="aspect-[4/5] bg-card overflow-hidden">
-                  <img src={fallbackBlack} alt={`${silhouette.name} Black`} className="w-full h-full object-contain p-2" loading="lazy" />
-                </div>
-                <div className="aspect-[4/5] bg-card overflow-hidden">
-                  <img src={fallbackWhite} alt={`${silhouette.name} White`} className="w-full h-full object-contain p-2" loading="lazy" />
-                </div>
+              <div className="aspect-[4/5] bg-card overflow-hidden cursor-pointer border border-transparent hover:border-foreground/20 transition-colors">
+                <img src={fallbackWhite} alt={`${silhouette.name} White — flat lay`} className="w-full h-full object-contain p-1" loading="lazy" data-testid="pdp-thumb-flatlay-white" />
               </div>
-            )}
+              <div className="aspect-[4/5] bg-card overflow-hidden cursor-pointer border border-transparent hover:border-foreground/20 transition-colors">
+                <img src={modelBlack} alt={`${silhouette.name} Black — on model`} className="w-full h-full object-cover" loading="lazy" data-testid="pdp-thumb-model-black" />
+              </div>
+              <div className="aspect-[4/5] bg-card overflow-hidden cursor-pointer border border-transparent hover:border-foreground/20 transition-colors">
+                <img src={modelWhite} alt={`${silhouette.name} White — on model`} className="w-full h-full object-cover" loading="lazy" data-testid="pdp-thumb-model-white" />
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-6">
@@ -150,21 +128,17 @@ export default function Product() {
               </ul>
             </div>
 
-            {hasMockups && Object.keys(allVariations).length > 0 && (
-              <>
-                <div className="w-full h-[1px] bg-border" />
-                <div className="flex flex-col gap-3">
-                  <p className="text-xs tracking-[0.15em] text-muted-foreground uppercase">Available Variations</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {Object.keys(allVariations).map((v) => (
-                      <span key={v} className="text-xs tracking-[0.1em] border border-border px-3 py-1.5 uppercase" data-testid={`badge-variation-${v}`}>
-                        {v === "bold" ? "Bold Chest" : v === "tagline" ? "Reduced + Tagline" : v === "wordmark" ? "Centre Wordmark" : "Left Chest Icon"}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="w-full h-[1px] bg-border" />
+            <div className="flex flex-col gap-3">
+              <p className="text-xs tracking-[0.15em] text-muted-foreground uppercase">Available Variations</p>
+              <div className="flex gap-2 flex-wrap">
+                {variations.map((v) => (
+                  <span key={v} className="text-xs tracking-[0.1em] border border-border px-3 py-1.5 uppercase" data-testid={`badge-variation-${v}`}>
+                    {v === "bold" ? "Bold Chest" : v === "tagline" ? "Reduced + Tagline" : v === "wordmark" ? "Centre Wordmark" : "Left Chest Icon"}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             <div className="w-full h-[1px] bg-border" />
 
