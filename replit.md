@@ -11,8 +11,8 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - **Analytics**: PostHog (optional, provide VITE_POSTHOG_KEY env var)
 
 ## Pages
-- `/` - Home: Hero with logo, tagline "THE UNIFORM OF NOW", countdown timer, waitlist form, product grid (with generated mockups if available)
-- `/drop` - Drop: Pre-drop state (countdown + notify CTA) / Post-drop (shop link), product grid
+- `/` - Home: H1 "DISTRICT21", tagline, hero mockup (65vw anchor), drop state toggle (pre/live/post), inline waitlist with privacy microcopy, sticky mobile CTA, product grid, social proof
+- `/drop` - Drop: Pre-drop state (countdown + notify CTA) / Live (shop link) / Post-drop (join next drop), product grid
 - `/product/:id` - Product Detail Page (PDP): Hero image, gallery, product details, waitlist/shop CTA
 - `/about` - About: Brand story and stats
 - `/contact` - Contact: Contact form
@@ -60,9 +60,17 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - Mobile-first responsive design
 - No dark mode toggle (uses system default which is already B&W)
 
+## Key Components
+- `client/src/components/sticky-mobile-cta.tsx` - Fixed bottom CTA bar on mobile with expandable waitlist form
+- `client/src/components/waitlist-form.tsx` - Email + WhatsApp waitlist form with consent checkbox
+- `client/src/components/countdown.tsx` - Countdown timer component
+- `client/src/components/nav.tsx` - Fixed top navigation with mobile hamburger menu
+- `client/src/components/footer.tsx` - Footer with brand name, year, navigation links
+
 ## Recent Changes
 - 2026-02-08: Initial build - all pages, admin panel, backend API, database schema
 - 2026-02-08: Added individual product images (8 garments x black/white)
 - 2026-02-08: Automated mockup generation pipeline (Sharp compositing, batch generation, WebP/JPG export, ZIP/CSV)
 - 2026-02-08: Product Detail Pages (PDPs) with gallery, product info, and generated mockup integration
 - 2026-02-08: Admin panel extensions (brand asset upload, mockup generator, export tools)
+- 2026-02-08: Production QA pass — H1 heading, hero mockup anchor, drop state toggle (pre/live/post), sticky mobile CTA, SEO/OG tags, favicon, privacy microcopy, footer brand+year
