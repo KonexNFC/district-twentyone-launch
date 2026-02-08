@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/use-page-title";
-import { Check, Mail, Send } from "lucide-react";
+import { Check, Mail, Send, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
 const contactSchema = z.object({
@@ -63,9 +63,21 @@ export default function Contact() {
           <div className="w-12 h-[1px] bg-foreground/20 mt-2" />
         </div>
 
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Mail className="w-4 h-4" />
-          <span className="text-sm tracking-wide" data-testid="text-email">hello@district21.com</span>
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <Mail className="w-4 h-4" />
+            <span className="text-sm tracking-wide" data-testid="text-email">hello@district21.com</span>
+          </div>
+          <a
+            href="https://wa.me/1234567890"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            data-testid="link-whatsapp-chat"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span className="text-sm tracking-wide">Chat on WhatsApp</span>
+          </a>
         </div>
 
         {sent ? (

@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Check, ArrowRight } from "lucide-react";
@@ -13,6 +14,7 @@ import { useState } from "react";
 const waitlistSchema = z.object({
   email: z.string().email("Enter a valid email"),
   whatsapp: z.string().optional(),
+  consent: z.boolean().refine((v) => v === true, { message: "You must agree to continue" }),
 });
 
 type WaitlistData = z.infer<typeof waitlistSchema>;
@@ -23,12 +25,13 @@ export function WaitlistForm() {
 
   const form = useForm<WaitlistData>({
     resolver: zodResolver(waitlistSchema),
-    defaultValues: { email: "", whatsapp: "" },
+    defaultValues: { email: "", whatsapp: "", consent: false },
   });
 
   const mutation = useMutation({
     mutationFn: async (data: WaitlistData) => {
-      await apiRequest("POST", "/api/leads", data);
+      const { consent, ...payload } = data;
+      await apiRequest("POST", "/api/leads", payload);
     },
     onSuccess: () => {
       setSubmitted(true);
@@ -95,6 +98,28 @@ export function WaitlistForm() {
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="consent"
+          render={({ field }) => (
+            <FormItem className="flex items-start gap-2 space-y-0 py-1">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="mt-0.5 rounded-none"
+                  data-testid="checkbox-consent"
+                />
+              </FormControl>
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[11px] text-muted-foreground leading-snug cursor-pointer" onClick={() => field.onChange(!field.value)}>
+                  I agree to receive marketing communications from DISTRICT21. You can unsubscribe at any time.
+                </label>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />

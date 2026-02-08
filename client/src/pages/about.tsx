@@ -29,10 +29,22 @@ export default function About() {
             No logos. No noise. Just the cut, the fabric, the form.
             Each collection drops once and never returns.
           </p>
+          <div className="flex flex-col items-center gap-2 py-4">
+            <img
+              src="/images/logo-icon.jpeg"
+              alt="DISTRICT21 Icon"
+              className="w-16 h-auto opacity-80"
+            />
+          </div>
           <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-            Founded in 2025 with a single conviction: the uniform
-            of the future has no color, no embellishment, no compromise.
-            Only intent.
+            Our mission: the uniform for the present moment. Fast fashion
+            redefined through limited drops, premium materials, and zero
+            compromise. Designed for men 18-35 who move between
+            culture, code, and the street.
+          </p>
+          <p className="text-xs text-muted-foreground/60 leading-relaxed italic">
+            We're committed to responsible production. Every piece is made
+            in small batches to minimize waste. No overproduction. No excess.
           </p>
         </div>
 

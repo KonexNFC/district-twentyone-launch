@@ -1,0 +1,147 @@
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+Project: DISTRICT21 – Launch Page, Drop Engine & Growth Stack
+Owner: DISTRICT21
+Objective: Build a high-conversion launch microsite to capture demand, run drop mechanics, and route traffic to Shopify checkout at launch.
+
+⸻
+
+1) Goals & Success Metrics
+
+Primary Goals
+	•	Capture early demand (email + WhatsApp opt-ins)
+	•	Build hype for Drop 001 (countdown + gated access)
+	•	Route users to Shopify PDPs at launch
+	•	Establish brand credibility for DISTRICT21
+
+KPIs
+	•	Email opt-in conversion ≥ 20%
+	•	WhatsApp opt-in conversion ≥ 10%
+	•	Drop-day click-through to Shopify ≥ 30%
+	•	Page load time < 2 seconds (mobile)
+
+⸻
+
+2) Target Users
+	•	Core: Men 18–35 (mobile-first)
+	•	Secondary: Culture buyers, early adopters, creators
+
+⸻
+
+3) Scope (v1 MVP)
+
+Public Pages
+	•	/ (Home / Launch Page)
+	•	Hero: DISTRICT21 wordmark + tagline “THE UNIFORM OF NOW”
+	•	Subtext: Fast fashion, limited drops
+	•	CTA: Join Waitlist (Email + WhatsApp)
+	•	Countdown to Drop 001
+	•	Teaser mockups (black/white)
+	•	Social proof strip (creator logos or “Seen on…” placeholder)
+	•	/drop
+	•	Drop 001 teaser
+	•	Drop timer (locked until launch)
+	•	“Notify me” CTA
+	•	Link-out to Shopify PDPs when live
+	•	/about
+	•	Short brand story
+	•	Mission: uniform for the present moment
+	•	Sustainability note (if applicable)
+	•	/contact
+	•	Contact form
+	•	WhatsApp click-to-chat
+
+⸻
+
+4) Features & Functional Requirements
+
+Lead Capture
+	•	Email capture form
+	•	WhatsApp opt-in (phone number)
+	•	Double opt-in email (optional)
+	•	Store leads in database (Supabase/Firebase)
+
+Countdown & Drop Mechanics
+	•	Global countdown timer (configurable date/time)
+	•	State-based UI:
+	•	Pre-drop: Waitlist only
+	•	Drop live: CTA links to Shopify product pages
+	•	Post-drop: “Sold out / Join next drop” state
+
+Admin Panel (Lightweight)
+	•	Update drop date/time
+	•	Toggle “Drop Live” state
+	•	Export leads (CSV)
+	•	View basic analytics (visits, opt-ins)
+
+Analytics
+	•	Page views
+	•	Conversion events (email submit, WhatsApp click, Shopify click-through)
+	•	Google Analytics / PostHog integration
+
+Performance & UX
+	•	Mobile-first responsive design
+	•	Fast load (lazy load images)
+	•	Accessible contrast (black/white only)
+	•	SEO meta tags
+
+⸻
+
+5) Non-Functional Requirements
+	•	Tech Stack (Replit)
+	•	Frontend: Next.js + Tailwind
+	•	Backend: Node/Express or Next API routes
+	•	DB: Supabase or Firebase
+	•	Hosting: Replit deployment
+	•	Security
+	•	Basic rate limiting on forms
+	•	reCAPTCHA on submissions
+	•	Compliance
+	•	GDPR-compliant consent checkbox
+	•	Privacy policy + terms page
+
+⸻
+
+6) Brand & UI Requirements
+	•	Colour: Black / White only
+	•	Typography: DISTRICT21 horizontal wordmark (logo asset provided)
+	•	Hero Message: THE UNIFORM OF NOW
+	•	Imagery: Product mockups only (no stock)
+	•	Tone: Minimal, confident, street-led
+
+⸻
+
+7) Integrations (Phase 1)
+	•	Shopify:
+	•	External links to product pages (Drop 001)
+	•	Email:
+	•	Resend/Mailchimp for mailing list
+	•	WhatsApp:
+	•	Click-to-chat + opt-in capture
+	•	Analytics:
+	•	GA4 or PostHog
+
+⸻
+
+8) Deliverables
+	•	Live launch microsite (mobile-first)
+	•	Admin panel for drop control
+	•	Database schema for leads
+	•	Exportable CSV of waitlist
+	•	Documentation for updating drop date and Shopify links
+
+⸻
+
+9) Milestones
+	•	Day 1–2: UI scaffold + hero + waitlist
+	•	Day 3: Countdown + admin toggle
+	•	Day 4: Analytics + integrations
+	•	Day 5: QA + deployment
+
+⸻
+
+10) Out of Scope (v1)
+	•	Full checkout (handled by Shopify)
+	•	User accounts
+	•	Loyalty program
+	•	Full CMS

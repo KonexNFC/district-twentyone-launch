@@ -18,7 +18,11 @@ export function Nav() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
         <Link href="/" data-testid="link-home-logo">
-          <span className="font-mono text-lg font-bold tracking-[0.3em]">DISTRICT21</span>
+          <img
+            src="/images/logo-wordmark.jpeg"
+            alt="DISTRICT21"
+            className="h-5 sm:h-6 w-auto"
+          />
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
