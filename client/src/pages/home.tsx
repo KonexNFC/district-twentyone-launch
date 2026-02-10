@@ -30,7 +30,7 @@ function getDropState(settings?: DropSettings | null): "pre" | "live" | "post" {
 export default function Home() {
   usePageTitle(
     "DISTRICT21 — THE UNIFORM OF NOW | Drop 001",
-    "Join the DISTRICT21 waitlist. Limited edition fashion drops. No restocks."
+    "Join the DISTRICT21 waitlist. Limited edition fashion drops."
   );
 
   const { data: settings } = useQuery<DropSettings>({
@@ -68,7 +68,7 @@ export default function Home() {
               data-testid="img-brand-logo"
             />
             <p className="text-xs tracking-[0.2em] text-white/60 uppercase" data-testid="text-tagline">
-              Drop 001 — Limited quantities. No restocks.
+              Drop 001 — Limited quantities.
             </p>
             <div className="w-12 h-[1px] bg-white/30" />
           </div>
