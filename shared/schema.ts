@@ -135,9 +135,12 @@ export const SILHOUETTES = [
   { id: "blaster2", name: "Blaster 2.0", type: "tee", fit: "oversized tee" },
   { id: "gamechanger", name: "Gamechanger", type: "hoodie", fit: "heavyweight hood" },
   { id: "voicer", name: "Voicer", type: "hoodie", fit: "relaxed hood" },
+  { id: "chaser", name: "Chaser", type: "hoodie", fit: "chaser hood" },
   { id: "ryler", name: "Ryler", type: "sweatshirt", fit: "classic sweatshirt" },
   { id: "thinker", name: "Thinker", type: "sweatshirt", fit: "premium sweatshirt" },
+  { id: "hat", name: "Hat", type: "hat", fit: "structured cap" },
 ] as const;
 
 export const TEE_VARIATIONS = ["bold", "tagline", "icon"] as const;
 export const HOODIE_SWEAT_VARIATIONS = ["wordmark", "icon"] as const;
+export const HAT_VARIATIONS = ["wordmark", "icon"] as const;

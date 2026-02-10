@@ -147,6 +147,12 @@ export default function Product() {
                     <span>Brushed fleece interior</span>
                   </li>
                 )}
+                {silhouette.type === "hat" && (
+                  <li className="flex items-start gap-2">
+                    <span className="w-1 h-1 rounded-full bg-foreground/40 mt-2 shrink-0" />
+                    <span>Structured six-panel cap</span>
+                  </li>
+                )}
               </ul>
             </div>
 

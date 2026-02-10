@@ -76,3 +76,4 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - 2026-02-08: Production QA pass — H1 heading, hero mockup anchor, drop state toggle (pre/live/post), sticky mobile CTA, SEO/OG tags, favicon, privacy microcopy, footer brand+year
 - 2026-02-08: New brand logo deployed across all pages (nav, footer, homepage, about, favicon, OG image, mockup engine defaults)
 - 2026-02-08: Editorial lifestyle hero banner — full-viewport background image with dark gradient wash, white logo/text overlay, hero-variant styling for WaitlistForm and Countdown components
+- 2026-02-10: Added Chaser hoodie and Hat silhouettes to product catalog (10 products total), converted PDF design files to product images, updated mockup engine with hat placements, regenerated 48 total mockups

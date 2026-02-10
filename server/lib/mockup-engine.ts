@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import path from "path";
 import fs from "fs/promises";
-import { SILHOUETTES, TEE_VARIATIONS, HOODIE_SWEAT_VARIATIONS, type Placement } from "@shared/schema";
+import { SILHOUETTES, TEE_VARIATIONS, HOODIE_SWEAT_VARIATIONS, HAT_VARIATIONS, type Placement } from "@shared/schema";
 
 const PUBLIC_DIR = path.resolve(process.cwd(), "client/public");
 const PRODUCTS_DIR = path.join(PUBLIC_DIR, "images/products");
@@ -24,10 +24,15 @@ const DEFAULT_PLACEMENTS: Record<string, Record<string, Placement>> = {
     wordmark: { x: 0.25, y: 0.26, width: 0.5, height: 0.1, opacity: 0.88 },
     icon: { x: 0.15, y: 0.26, width: 0.15, height: 0.08, opacity: 0.88 },
   },
+  hat: {
+    wordmark: { x: 0.2, y: 0.25, width: 0.6, height: 0.15, opacity: 0.9 },
+    icon: { x: 0.35, y: 0.25, width: 0.3, height: 0.2, opacity: 0.9 },
+  },
 };
 
 function getVariationsForType(type: string): readonly string[] {
   if (type === "tee") return TEE_VARIATIONS;
+  if (type === "hat") return HAT_VARIATIONS;
   return HOODIE_SWEAT_VARIATIONS;
 }
 

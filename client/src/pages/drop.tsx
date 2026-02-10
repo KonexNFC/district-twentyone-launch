@@ -114,7 +114,7 @@ export default function Drop() {
             The Collection
           </p>
           <p className="text-xs tracking-[0.2em] text-muted-foreground/60 uppercase text-center mb-12">
-            8 Pieces &middot; Black &amp; White &middot; Limited Edition
+            10 Pieces &middot; Black &amp; White &middot; Limited Edition
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
