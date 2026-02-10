@@ -138,7 +138,9 @@ export const SILHOUETTES = [
   { id: "chaser", name: "Chaser", type: "hoodie", fit: "chaser hood" },
   { id: "ryler", name: "Ryler", type: "sweatshirt", fit: "classic sweatshirt" },
   { id: "thinker", name: "Thinker", type: "sweatshirt", fit: "premium sweatshirt" },
-  { id: "hat", name: "Hat", type: "hat", fit: "structured cap" },
+  { id: "d21-hat", name: "D21 Hat", type: "hat", fit: "structured cap" },
+  { id: "district21-hat", name: "District21 Hat", type: "hat", fit: "structured cap" },
+  { id: "icon-hat", name: "Icon Hat", type: "hat", fit: "structured cap" },
 ] as const;
 
 export const TEE_VARIATIONS = ["bold", "tagline", "icon"] as const;
