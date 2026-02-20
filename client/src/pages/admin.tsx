@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Settings, Users, Lock, Upload, Image, Package, FileText, Loader2, Trash2, RefreshCw } from "lucide-react";
-import type { DropSettings, Lead, BrandAsset, Mockup } from "@shared/schema";
+import { Download, Settings, Users, Lock, Upload, Image, Package, FileText, Loader2, Trash2, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Check } from "lucide-react";
+import type { DropSettings, Lead, BrandAsset, Mockup, MockupJob } from "@shared/schema";
 import { SILHOUETTES } from "@shared/schema";
 
 function AdminLogin({ onLogin }: { onLogin: (pw: string) => void }) {
@@ -43,11 +43,11 @@ function AdminLogin({ onLogin }: { onLogin: (pw: string) => void }) {
             value={pw}
             onChange={(e) => { setPw(e.target.value); setError(false); }}
             placeholder="PASSWORD"
-            className="bg-transparent border-foreground/20 text-sm tracking-[0.1em] placeholder:text-muted-foreground/50 h-12 rounded-none text-center"
+            className="bg-transparent border-foreground/20 text-sm tracking-[0.1em] placeholder:text-muted-foreground/50 rounded-none text-center"
             data-testid="input-admin-password"
           />
           {error && <p className="text-xs text-destructive text-center">Invalid password</p>}
-          <Button type="submit" className="h-12 rounded-none tracking-[0.2em] text-sm" data-testid="button-admin-login">
+          <Button type="submit" className="rounded-none tracking-[0.2em] text-sm" data-testid="button-admin-login">
             ENTER
           </Button>
         </form>
@@ -92,7 +92,7 @@ function DropSettingsSection({ adminPw, settings }: { adminPw: string; settings:
               type="datetime-local"
               value={dropDate || (settings?.dropDate ? new Date(settings.dropDate).toISOString().slice(0, 16) : "")}
               onChange={(e) => setDropDate(e.target.value)}
-              className="bg-transparent border-foreground/20 text-sm h-10 rounded-none flex-1 min-w-[200px]"
+              className="bg-transparent border-foreground/20 text-sm rounded-none flex-1 min-w-[200px]"
               data-testid="input-drop-date"
             />
             <Button
@@ -114,7 +114,7 @@ function DropSettingsSection({ adminPw, settings }: { adminPw: string; settings:
               value={shopifyUrl || settings?.shopifyUrl || ""}
               onChange={(e) => setShopifyUrl(e.target.value)}
               placeholder="https://shop.district21.com"
-              className="bg-transparent border-foreground/20 text-sm h-10 rounded-none flex-1 min-w-[200px] placeholder:text-muted-foreground/40"
+              className="bg-transparent border-foreground/20 text-sm rounded-none flex-1 min-w-[200px] placeholder:text-muted-foreground/40"
               data-testid="input-shopify-url"
             />
             <Button
@@ -324,7 +324,7 @@ function BrandAssetsSection({ adminPw }: { adminPw: string }) {
                       <span className="text-xs text-muted-foreground">{asset.width}x{asset.height}</span>
                       <button
                         onClick={() => handleDelete(asset.id)}
-                        className="text-muted-foreground/50 hover:text-destructive"
+                        className="text-muted-foreground/50"
                         data-testid={`button-delete-asset-${asset.id}`}
                       >
                         <Trash2 className="w-3 h-3" />
@@ -347,13 +347,83 @@ function BrandAssetsSection({ adminPw }: { adminPw: string }) {
   );
 }
 
+function JobStatusBar({ counts, total }: { counts: Record<string, number>; total: number }) {
+  if (total === 0) return null;
+
+  const completed = counts.completed || 0;
+  const failed = counts.failed || 0;
+  const processing = counts.processing || 0;
+  const queued = counts.queued || 0;
+  const pct = total > 0 ? Math.round(((completed + failed) / total) * 100) : 0;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{pct}% complete</span>
+        <span>{completed + failed}/{total}</span>
+      </div>
+      <div className="w-full h-2 bg-muted rounded-none overflow-hidden flex">
+        {completed > 0 && (
+          <div
+            className="h-full bg-foreground transition-all duration-300"
+            style={{ width: `${(completed / total) * 100}%` }}
+          />
+        )}
+        {processing > 0 && (
+          <div
+            className="h-full bg-foreground/50 animate-pulse transition-all duration-300"
+            style={{ width: `${(processing / total) * 100}%` }}
+          />
+        )}
+        {failed > 0 && (
+          <div
+            className="h-full bg-destructive transition-all duration-300"
+            style={{ width: `${(failed / total) * 100}%` }}
+          />
+        )}
+      </div>
+      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {completed} done</span>
+        <span className="flex items-center gap-1"><Loader2 className="w-3 h-3" /> {processing} active</span>
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {queued} queued</span>
+        {failed > 0 && <span className="flex items-center gap-1 text-destructive"><XCircle className="w-3 h-3" /> {failed} failed</span>}
+      </div>
+    </div>
+  );
+}
+
 function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
   const { toast } = useToast();
   const headers: Record<string, string> = { "x-admin-password": adminPw, "Content-Type": "application/json" };
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
 
   const { data: existingMockups = [], isLoading: mockupsLoading } = useQuery<Mockup[]>({
     queryKey: ["/api/mockups"],
   });
+
+  const { data: jobData } = useQuery<{ jobs: MockupJob[]; counts: Record<string, number> }>({
+    queryKey: ["/api/admin/mockup-jobs"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/mockup-jobs", { headers: { "x-admin-password": adminPw } });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    refetchInterval: activeBatchId ? 2000 : false,
+  });
+
+  const jobCounts = jobData?.counts || { queued: 0, processing: 0, completed: 0, failed: 0 };
+  const totalJobs = Object.values(jobCounts).reduce((a, b) => a + b, 0);
+  const hasActiveJobs = (jobCounts.queued || 0) > 0 || (jobCounts.processing || 0) > 0;
+
+  useEffect(() => {
+    if (activeBatchId && !hasActiveJobs) {
+      queryClient.invalidateQueries({ queryKey: ["/api/mockups"] });
+      if (jobCounts.completed > 0) {
+        toast({ title: `Batch complete: ${jobCounts.completed} mockups generated` });
+      }
+      setActiveBatchId(null);
+    }
+  }, [hasActiveJobs, activeBatchId, jobCounts.completed]);
 
   const generateAll = useMutation({
     mutationFn: async () => {
@@ -364,16 +434,49 @@ function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Generation failed");
+        throw new Error(err.message || "Enqueue failed");
       }
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/mockups"] });
-      toast({ title: `Generated ${data.count} mockups` });
+      setActiveBatchId(data.batchId);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/mockup-jobs"] });
+      toast({ title: `${data.jobCount || 1} jobs enqueued` });
     },
     onError: (err: Error) => {
       toast({ title: err.message, variant: "destructive" });
+    },
+  });
+
+  const approveMockup = useMutation({
+    mutationFn: async ({ id, approved }: { id: number; approved: boolean }) => {
+      const res = await fetch(`/api/admin/mockups/${id}/approve`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ approved }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/mockups"] });
+    },
+  });
+
+  const approveAll = useMutation({
+    mutationFn: async (approved: boolean) => {
+      const ids = existingMockups.map(m => m.id);
+      const res = await fetch("/api/admin/mockups/approve-bulk", {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ ids, approved }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: (_, approved) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/mockups"] });
+      toast({ title: approved ? "All mockups approved" : "All approvals revoked" });
     },
   });
 
@@ -407,6 +510,11 @@ function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
     silhouetteGroups[m.silhouette].push(m);
   }
 
+  const approvedCount = existingMockups.filter(m => m.approved).length;
+  const unapprovedCount = existingMockups.length - approvedCount;
+
+  const failedJobs = (jobData?.jobs || []).filter(j => j.status === "failed");
+
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
@@ -419,35 +527,58 @@ function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium">Batch Generate All Mockups</p>
             <p className="text-xs text-muted-foreground">
-              Generates {SILHOUETTES.length} silhouettes &times; 2 colours &times; 2-3 variations = 20-24 mockups.
-              Each exported as WebP (1600/1024/640) + JPG fallback.
+              Generates {SILHOUETTES.length} silhouettes x 2 colours x 2-3 variations.
+              Jobs are processed asynchronously in the background.
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button
               className="rounded-none tracking-[0.15em] text-xs"
               onClick={() => generateAll.mutate()}
-              disabled={generateAll.isPending}
+              disabled={generateAll.isPending || hasActiveJobs}
               data-testid="button-generate-all"
             >
-              {generateAll.isPending ? (
-                <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> GENERATING...</>
+              {generateAll.isPending || hasActiveJobs ? (
+                <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> {hasActiveJobs ? "PROCESSING..." : "ENQUEUING..."}</>
               ) : (
                 <><RefreshCw className="w-3 h-3 mr-2" /> GENERATE ALL</>
               )}
             </Button>
           </div>
+
+          {totalJobs > 0 && (
+            <JobStatusBar counts={jobCounts} total={totalJobs} />
+          )}
         </div>
+
+        {failedJobs.length > 0 && (
+          <div className="flex flex-col gap-2 border border-destructive/30 p-4 rounded-none">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <p className="text-sm font-medium text-destructive">Failed Jobs ({failedJobs.length})</p>
+            </div>
+            <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+              {failedJobs.map((job) => (
+                <div key={job.id} className="text-xs text-muted-foreground flex items-center gap-2">
+                  <XCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                  <span>{job.silhouette}-{job.color}-{job.variation}</span>
+                  <span className="text-destructive/70 truncate">{job.error}</span>
+                  <span className="text-muted-foreground/50">({job.attempts}/{job.maxAttempts} attempts)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {existingMockups.length > 0 && (
           <div className="flex flex-col gap-3 border border-border p-4 rounded-none">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
-                <p className="text-sm font-medium">Export Assets</p>
+                <p className="text-sm font-medium">Export & Approval</p>
                 <span className="text-xs text-muted-foreground">({existingMockups.length} mockups)</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
                   size="sm"
@@ -468,12 +599,51 @@ function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
                 </Button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-border gap-2 flex-wrap">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">
+                  <span className="text-foreground font-medium">{approvedCount}</span> approved
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  <span className="text-foreground font-medium">{unapprovedCount}</span> pending
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-none tracking-[0.1em] text-xs"
+                  onClick={() => approveAll.mutate(true)}
+                  disabled={approveAll.isPending || approvedCount === existingMockups.length}
+                  data-testid="button-approve-all"
+                >
+                  <Check className="w-3 h-3 mr-1" /> APPROVE ALL
+                </Button>
+                {approvedCount > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-none tracking-[0.1em] text-xs"
+                    onClick={() => approveAll.mutate(false)}
+                    disabled={approveAll.isPending}
+                    data-testid="button-revoke-all"
+                  >
+                    REVOKE ALL
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground/60">
+              Approval is required before publishing to Shopify. Only approved mockups will be included in publish actions.
+            </p>
           </div>
         )}
 
         {existingMockups.length > 0 && (
           <div className="flex flex-col gap-4">
-            <p className="text-xs tracking-[0.15em] text-muted-foreground uppercase">Generated Mockups Preview</p>
+            <p className="text-xs tracking-[0.15em] text-muted-foreground uppercase">Generated Mockups</p>
             {Object.entries(silhouetteGroups).map(([sil, items]) => {
               const silInfo = SILHOUETTES.find(s => s.id === sil);
               return (
@@ -482,13 +652,20 @@ function MockupGeneratorSection({ adminPw }: { adminPw: string }) {
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                     {items.map((m) => (
                       <div key={m.id} className="flex flex-col items-center gap-1" data-testid={`mockup-preview-${m.id}`}>
-                        <div className="aspect-[4/5] w-full bg-muted overflow-hidden">
+                        <div className="aspect-[4/5] w-full bg-muted overflow-hidden relative">
                           <img
                             src={m.filePath640 || m.filePath1024 || ""}
                             alt={m.altText || ""}
                             className="w-full h-full object-contain"
                             loading="lazy"
                           />
+                          <button
+                            onClick={() => approveMockup.mutate({ id: m.id, approved: !m.approved })}
+                            className={`absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full ${m.approved ? "bg-foreground text-background" : "bg-background/80 text-muted-foreground border border-border"}`}
+                            data-testid={`button-approve-mockup-${m.id}`}
+                          >
+                            {m.approved ? <Check className="w-3 h-3" /> : <span className="w-3 h-3" />}
+                          </button>
                         </div>
                         <span className="text-[9px] text-muted-foreground text-center leading-tight">
                           {m.color} / {m.variation}

@@ -7,7 +7,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import archiver from "archiver";
-import { generateMockup, generateAllMockups, generateCSV, GENERATED_DIR, BRAND_ASSETS_DIR, DEFAULT_PLACEMENTS, getVariationsForType } from "./lib/mockup-engine";
+import { generateCSV, GENERATED_DIR, BRAND_ASSETS_DIR, DEFAULT_PLACEMENTS, getVariationsForType } from "./lib/mockup-engine";
+import { registerObjectStorageRoutes, ObjectStorageService } from "./replit_integrations/object_storage";
+import { startMockupWorker } from "./lib/mockup-worker";
+import crypto from "crypto";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "client/public/uploads/brand-assets");
 
@@ -56,6 +59,25 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  registerObjectStorageRoutes(app);
+
+  startMockupWorker();
+
+  const objStorage = new ObjectStorageService();
+  app.get(/^\/storage\/(.+)$/, async (req, res) => {
+    try {
+      const filePath = req.path.replace("/storage/", "");
+      const file = await objStorage.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      await objStorage.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error serving storage file:", error);
+      res.status(500).json({ error: "Failed to serve file" });
+    }
+  });
 
   app.get("/api/drop-settings", async (_req, res) => {
     try {
@@ -268,7 +290,8 @@ export async function registerRoutes(
   app.get("/api/mockups", async (_req, res) => {
     try {
       const allMockups = await storage.getAllMockups();
-      res.json(allMockups);
+      const approved = allMockups.filter(m => m.approved);
+      res.json(approved);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch mockups" });
     }
@@ -277,7 +300,8 @@ export async function registerRoutes(
   app.get("/api/mockups/:silhouette", async (req, res) => {
     try {
       const mockupList = await storage.getMockupsBySilhouette(req.params.silhouette);
-      res.json(mockupList);
+      const approved = mockupList.filter(m => m.approved);
+      res.json(approved);
     } catch (err) {
       res.status(500).json({ message: "Failed to fetch mockups" });
     }
@@ -286,66 +310,132 @@ export async function registerRoutes(
   app.post("/api/admin/mockups/generate", requireAdmin, async (req, res) => {
     try {
       const { silhouette, color, variation } = req.body || {};
+      const batchId = crypto.randomUUID();
 
       if (silhouette && color && variation) {
-        const presets = await storage.getMockupPresetsBySilhouette(silhouette);
-        const preset = presets.find(p => p.variation === variation);
-        const placement = preset?.placement as any || undefined;
-
-        const result = await generateMockup(silhouette, color, variation, placement);
-        const mockup = await storage.createMockup({
-          silhouette: result.silhouette,
-          color: result.color,
-          variation: result.variation,
-          presetId: preset?.id || null,
-          filePath1600: result.filePath1600,
-          filePath1024: result.filePath1024,
-          filePath640: result.filePath640,
-          filePathJpg: result.filePathJpg,
-          altText: result.altText,
+        const job = await storage.createMockupJob({
+          status: "queued",
+          silhouette,
+          color,
+          variation,
+          batchId,
+          maxAttempts: 3,
         });
-        return res.json(mockup);
+        return res.json({ batchId, jobs: [job], message: "Job enqueued" });
       }
 
       await storage.deleteAllMockups();
 
-      const presets = await storage.getAllMockupPresets();
-      const customPlacements: Record<string, Record<string, any>> = {};
-      for (const p of presets) {
-        if (!customPlacements[p.silhouette]) customPlacements[p.silhouette] = {};
-        customPlacements[p.silhouette][p.variation] = p.placement;
+      const jobs = [];
+      for (const sil of SILHOUETTES) {
+        const variations = getVariationsForType(sil.type);
+        for (const c of ["black", "white"]) {
+          for (const v of variations) {
+            const job = await storage.createMockupJob({
+              status: "queued",
+              silhouette: sil.id,
+              color: c,
+              variation: v,
+              batchId,
+              maxAttempts: 3,
+            });
+            jobs.push(job);
+          }
+        }
       }
 
-      const results = await generateAllMockups(customPlacements);
-
-      const mockupRecords = [];
-      for (const r of results) {
-        const preset = presets.find(p => p.silhouette === r.silhouette && p.variation === r.variation);
-        const mockup = await storage.createMockup({
-          silhouette: r.silhouette,
-          color: r.color,
-          variation: r.variation,
-          presetId: preset?.id || null,
-          filePath1600: r.filePath1600,
-          filePath1024: r.filePath1024,
-          filePath640: r.filePath640,
-          filePathJpg: r.filePathJpg,
-          altText: r.altText,
-        });
-        mockupRecords.push(mockup);
-      }
-
-      res.json({ count: mockupRecords.length, mockups: mockupRecords });
+      res.json({ batchId, jobCount: jobs.length, message: `${jobs.length} jobs enqueued` });
     } catch (err: any) {
-      console.error("Generation error:", err);
-      res.status(500).json({ message: err.message || "Failed to generate mockups" });
+      console.error("Enqueue error:", err);
+      res.status(500).json({ message: err.message || "Failed to enqueue jobs" });
+    }
+  });
+
+  app.get("/api/admin/mockup-jobs", requireAdmin, async (_req, res) => {
+    try {
+      const jobs = await storage.getAllMockupJobs();
+      const counts = await storage.getJobStatusCounts();
+      res.json({ jobs, counts });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
+  app.get("/api/admin/mockup-jobs/status", requireAdmin, async (_req, res) => {
+    try {
+      const counts = await storage.getJobStatusCounts();
+      res.json(counts);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch job status" });
+    }
+  });
+
+  app.get("/api/admin/mockup-jobs/batch/:batchId", requireAdmin, async (req, res) => {
+    try {
+      const jobs = await storage.getJobsByBatchId(req.params.batchId);
+      const counts: Record<string, number> = { queued: 0, processing: 0, completed: 0, failed: 0 };
+      for (const j of jobs) {
+        counts[j.status] = (counts[j.status] || 0) + 1;
+      }
+      res.json({ batchId: req.params.batchId, jobs, counts, total: jobs.length });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch batch" });
+    }
+  });
+
+  app.get("/api/admin/mockup-jobs/:id", requireAdmin, async (req, res) => {
+    try {
+      const job = await storage.getMockupJob(parseInt(req.params.id));
+      if (!job) return res.status(404).json({ message: "Job not found" });
+      res.json(job);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch job" });
+    }
+  });
+
+  app.patch("/api/admin/mockups/:id/approve", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { approved } = req.body;
+      if (typeof approved !== "boolean") {
+        return res.status(400).json({ message: "approved must be a boolean" });
+      }
+      const mockup = await storage.updateMockupApproval(id, approved);
+      res.json(mockup);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update approval" });
+    }
+  });
+
+  app.patch("/api/admin/mockups/approve-bulk", requireAdmin, async (req, res) => {
+    try {
+      const { ids, approved } = req.body;
+      if (!Array.isArray(ids) || typeof approved !== "boolean") {
+        return res.status(400).json({ message: "ids must be an array and approved must be a boolean" });
+      }
+      await storage.bulkUpdateMockupApproval(ids, approved);
+      res.json({ ok: true, updated: ids.length });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to bulk update approval" });
+    }
+  });
+
+  app.get("/api/admin/mockups/approved", requireAdmin, async (_req, res) => {
+    try {
+      const allMockups = await storage.getAllMockups();
+      const approved = allMockups.filter(m => m.approved);
+      const unapproved = allMockups.filter(m => !m.approved);
+      res.json({ approved, unapproved, totalApproved: approved.length, totalUnapproved: unapproved.length });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch approved mockups" });
     }
   });
 
   app.get("/api/admin/mockups/export-csv", requireAdmin, async (_req, res) => {
     try {
       const allMockups = await storage.getAllMockups();
-      const csvResults = allMockups.map(m => ({
+      const approvedOnly = allMockups.filter(m => m.approved);
+      const csvResults = approvedOnly.map(m => ({
         silhouette: m.silhouette,
         color: m.color,
         variation: m.variation,
@@ -354,6 +444,7 @@ export async function registerRoutes(
         filePath640: m.filePath640 || "",
         filePathJpg: m.filePathJpg || "",
         altText: m.altText || "",
+        approved: m.approved ? "yes" : "no",
       }));
       const csv = generateCSV(csvResults);
       res.setHeader("Content-Type", "text/csv");

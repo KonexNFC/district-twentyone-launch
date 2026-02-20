@@ -19,17 +19,25 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - `/admin` - Admin panel (password protected via SESSION_SECRET env var)
 
 ## Key Files
-- `shared/schema.ts` - Data models (leads, dropSettings, users, brandAssets, mockupPresets, mockups)
+- `shared/schema.ts` - Data models (leads, dropSettings, users, brandAssets, mockupPresets, mockups, mockupJobs)
 - `server/routes.ts` - API endpoints
 - `server/storage.ts` - Database operations
 - `server/db.ts` - Database connection
 - `server/lib/mockup-engine.ts` - Sharp-based mockup compositing engine
+- `server/lib/mockup-worker.ts` - Background job processor (polls queued jobs, processes with retry logic)
+- `server/lib/mockup-storage.ts` - Object storage upload helper for generated assets
+- `server/replit_integrations/object_storage/` - Replit object storage integration (GCS-backed)
 - `client/src/components/` - Shared components (nav, footer, countdown, waitlist-form)
 - `client/src/pages/` - Page components
 
 ## Mockup Pipeline
-- **Silhouettes**: Freestyler, Hypster, Blaker, Blaster 2.0 (tees); Gamechanger, Voicer (hoodies); Ryler, Thinker (sweatshirts)
-- **Variations**: Tees get bold/tagline/icon; Hoodies & Sweats get wordmark/icon
+- **Processing**: Async job queue — API enqueues jobs, background worker processes them
+- **Worker**: Polls every 3s, processes one job at a time to avoid CPU spikes
+- **Retry**: Max 3 attempts per job; failed jobs show errors in admin UI
+- **Storage**: Generated assets stored in Replit Object Storage (GCS), served via `/storage/mockups/` route
+- **Approval**: Mockups have `approved` flag; approval required before Shopify publish
+- **Silhouettes**: Freestyler, Hypster, Blaker, Blaster 2.0 (tees); Gamechanger, Voicer, Chaser (hoodies); Ryler, Thinker (sweatshirts); D21 Hat, District21 Hat, Icon Hat (hats)
+- **Variations**: Tees get bold/tagline/icon; Hoodies & Sweats get wordmark/icon; Hats get wordmark/icon
 - **Output**: WebP at 1600/1024/640px + JPG fallback per mockup
 - **File naming**: `d21-{silhouette}-{color}-{variation}-{size}.{ext}`
 - **Placements**: Default presets per silhouette type; customizable via admin
@@ -50,7 +58,14 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - `PUT /api/admin/mockup-presets` - Upsert placement preset (admin)
 - `GET /api/mockups` - Get all generated mockups (public)
 - `GET /api/mockups/:silhouette` - Get mockups for a silhouette (public)
-- `POST /api/admin/mockups/generate` - Generate mockups (admin)
+- `POST /api/admin/mockups/generate` - Enqueue mockup generation jobs (admin)
+- `GET /api/admin/mockup-jobs` - Get all jobs with status counts (admin)
+- `GET /api/admin/mockup-jobs/status` - Get job status counts only (admin)
+- `GET /api/admin/mockup-jobs/batch/:batchId` - Get jobs for a batch (admin)
+- `GET /api/admin/mockup-jobs/:id` - Get single job details (admin)
+- `PATCH /api/admin/mockups/:id/approve` - Approve/reject single mockup (admin)
+- `PATCH /api/admin/mockups/approve-bulk` - Bulk approve/reject mockups (admin)
+- `GET /api/admin/mockups/approved` - Get approved vs unapproved counts (admin)
 - `GET /api/admin/mockups/export-csv` - Export mockup manifest CSV (admin)
 - `GET /api/admin/mockups/export-zip` - Export all mockup assets as ZIP (admin)
 
@@ -77,3 +92,4 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - 2026-02-08: New brand logo deployed across all pages (nav, footer, homepage, about, favicon, OG image, mockup engine defaults)
 - 2026-02-08: Editorial lifestyle hero banner — full-viewport background image with dark gradient wash, white logo/text overlay, hero-variant styling for WaitlistForm and Countdown components
 - 2026-02-10: Added Chaser hoodie and Hat silhouettes to product catalog (10 products total), converted PDF design files to product images, updated mockup engine with hat placements, regenerated 48 total mockups
+- 2026-02-20: Async mockup generation pipeline — job queue with background worker, retry logic (3 attempts), object storage (GCS) for generated assets, approval gating before Shopify publish, admin UI with real-time job status tracking and batch approval controls

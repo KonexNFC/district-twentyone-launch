@@ -117,6 +117,8 @@ export const mockups = pgTable("mockups", {
   filePath640: text("file_path_640"),
   filePathJpg: text("file_path_jpg"),
   altText: text("alt_text"),
+  approved: boolean("approved").notNull().default(false),
+  jobId: integer("job_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -127,6 +129,36 @@ export const insertMockupSchema = createInsertSchema(mockups).omit({
 
 export type InsertMockup = z.infer<typeof insertMockupSchema>;
 export type Mockup = typeof mockups.$inferSelect;
+
+export const JOB_STATUSES = ["queued", "processing", "completed", "failed"] as const;
+export type JobStatus = typeof JOB_STATUSES[number];
+
+export const mockupJobs = pgTable("mockup_jobs", {
+  id: serial("id").primaryKey(),
+  status: text("status").notNull().default("queued"),
+  silhouette: text("silhouette"),
+  color: text("color"),
+  variation: text("variation"),
+  batchId: text("batch_id"),
+  attempts: integer("attempts").notNull().default(0),
+  maxAttempts: integer("max_attempts").notNull().default(3),
+  error: text("error"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertMockupJobSchema = createInsertSchema(mockupJobs).omit({
+  id: true,
+  attempts: true,
+  error: true,
+  startedAt: true,
+  completedAt: true,
+  createdAt: true,
+});
+
+export type InsertMockupJob = z.infer<typeof insertMockupJobSchema>;
+export type MockupJob = typeof mockupJobs.$inferSelect;
 
 export const SILHOUETTES = [
   { id: "freestyler", name: "Freestyler", type: "tee", fit: "oversized tee" },

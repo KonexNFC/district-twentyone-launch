@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Lead, type InsertLead, type DropSettings, type InsertDropSettings, type ContactMessage, type InsertContactMessage, type BrandAsset, type InsertBrandAsset, type MockupPreset, type InsertMockupPreset, type Mockup, type InsertMockup, leads, dropSettings, users, contactMessages, brandAssets, mockupPresets, mockups } from "@shared/schema";
+import { type User, type InsertUser, type Lead, type InsertLead, type DropSettings, type InsertDropSettings, type ContactMessage, type InsertContactMessage, type BrandAsset, type InsertBrandAsset, type MockupPreset, type InsertMockupPreset, type Mockup, type InsertMockup, type MockupJob, type InsertMockupJob, leads, dropSettings, users, contactMessages, brandAssets, mockupPresets, mockups, mockupJobs } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -26,6 +26,16 @@ export interface IStorage {
   createMockup(mockup: InsertMockup): Promise<Mockup>;
   deleteMockup(id: number): Promise<void>;
   deleteAllMockups(): Promise<void>;
+  updateMockupApproval(id: number, approved: boolean): Promise<Mockup>;
+  bulkUpdateMockupApproval(ids: number[], approved: boolean): Promise<void>;
+  createMockupJob(job: InsertMockupJob): Promise<MockupJob>;
+  getMockupJob(id: number): Promise<MockupJob | undefined>;
+  getAllMockupJobs(): Promise<MockupJob[]>;
+  getJobsByBatchId(batchId: string): Promise<MockupJob[]>;
+  getNextQueuedJob(): Promise<MockupJob | undefined>;
+  updateJobStatus(id: number, status: string, error?: string | null): Promise<MockupJob>;
+  incrementJobAttempts(id: number): Promise<MockupJob>;
+  getJobStatusCounts(): Promise<Record<string, number>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -158,6 +168,72 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAllMockups(): Promise<void> {
     await db.delete(mockups);
+  }
+
+  async updateMockupApproval(id: number, approved: boolean): Promise<Mockup> {
+    const [result] = await db.update(mockups).set({ approved }).where(eq(mockups.id, id)).returning();
+    return result;
+  }
+
+  async bulkUpdateMockupApproval(ids: number[], approved: boolean): Promise<void> {
+    for (const id of ids) {
+      await db.update(mockups).set({ approved }).where(eq(mockups.id, id));
+    }
+  }
+
+  async createMockupJob(job: InsertMockupJob): Promise<MockupJob> {
+    const [result] = await db.insert(mockupJobs).values(job).returning();
+    return result;
+  }
+
+  async getMockupJob(id: number): Promise<MockupJob | undefined> {
+    const [result] = await db.select().from(mockupJobs).where(eq(mockupJobs.id, id));
+    return result;
+  }
+
+  async getAllMockupJobs(): Promise<MockupJob[]> {
+    return db.select().from(mockupJobs).orderBy(mockupJobs.createdAt);
+  }
+
+  async getJobsByBatchId(batchId: string): Promise<MockupJob[]> {
+    return db.select().from(mockupJobs).where(eq(mockupJobs.batchId, batchId)).orderBy(mockupJobs.createdAt);
+  }
+
+  async getNextQueuedJob(): Promise<MockupJob | undefined> {
+    const [result] = await db.select().from(mockupJobs)
+      .where(eq(mockupJobs.status, "queued"))
+      .orderBy(asc(mockupJobs.createdAt))
+      .limit(1);
+    return result;
+  }
+
+  async updateJobStatus(id: number, status: string, error?: string | null): Promise<MockupJob> {
+    const updates: any = { status };
+    if (status === "processing") updates.startedAt = new Date();
+    if (status === "completed" || status === "failed") updates.completedAt = new Date();
+    if (error !== undefined) updates.error = error;
+    const [result] = await db.update(mockupJobs).set(updates).where(eq(mockupJobs.id, id)).returning();
+    return result;
+  }
+
+  async incrementJobAttempts(id: number): Promise<MockupJob> {
+    const [result] = await db.update(mockupJobs)
+      .set({ attempts: sql`${mockupJobs.attempts} + 1` })
+      .where(eq(mockupJobs.id, id))
+      .returning();
+    return result;
+  }
+
+  async getJobStatusCounts(): Promise<Record<string, number>> {
+    const rows = await db.select({
+      status: mockupJobs.status,
+      count: sql<number>`count(*)::int`,
+    }).from(mockupJobs).groupBy(mockupJobs.status);
+    const counts: Record<string, number> = { queued: 0, processing: 0, completed: 0, failed: 0 };
+    for (const row of rows) {
+      counts[row.status] = row.count;
+    }
+    return counts;
   }
 }
 
