@@ -33,6 +33,7 @@ export interface IStorage {
   getAllMockupJobs(): Promise<MockupJob[]>;
   getJobsByBatchId(batchId: string): Promise<MockupJob[]>;
   getNextQueuedJob(): Promise<MockupJob | undefined>;
+  getJobsByStatus(status: string): Promise<MockupJob[]>;
   updateJobStatus(id: number, status: string, error?: string | null): Promise<MockupJob>;
   incrementJobAttempts(id: number): Promise<MockupJob>;
   getJobStatusCounts(): Promise<Record<string, number>>;
@@ -205,6 +206,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(mockupJobs.createdAt))
       .limit(1);
     return result;
+  }
+
+  async getJobsByStatus(status: string): Promise<MockupJob[]> {
+    return db.select().from(mockupJobs).where(eq(mockupJobs.status, status));
   }
 
   async updateJobStatus(id: number, status: string, error?: string | null): Promise<MockupJob> {

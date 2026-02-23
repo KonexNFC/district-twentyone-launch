@@ -10,6 +10,29 @@ const MAX_ATTEMPTS = 3;
 let isProcessing = false;
 let workerInterval: ReturnType<typeof setInterval> | null = null;
 
+sharp.cache(false);
+sharp.concurrency(1);
+
+async function recoverStuckJobs(): Promise<void> {
+  try {
+    const stuckJobs = await storage.getJobsByStatus("processing");
+    if (stuckJobs.length > 0) {
+      console.log(`[worker] Recovering ${stuckJobs.length} stuck jobs from previous crash`);
+      for (const job of stuckJobs) {
+        if ((job.attempts ?? 0) >= MAX_ATTEMPTS) {
+          await storage.updateJobStatus(job.id, "failed", "Server crashed during processing — max retries reached");
+          console.log(`[worker] Job ${job.id} permanently failed (max retries after crash)`);
+        } else {
+          await storage.updateJobStatus(job.id, "queued", "Server crashed — requeued for retry");
+          console.log(`[worker] Job ${job.id} requeued after crash recovery`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[worker] Error recovering stuck jobs:", err);
+  }
+}
+
 async function processJob(job: MockupJob): Promise<void> {
   if (!job.silhouette || !job.color || !job.variation) {
     throw new Error("Job missing required fields: silhouette, color, variation");
@@ -20,8 +43,6 @@ async function processJob(job: MockupJob): Promise<void> {
   const placement = preset?.placement as any || undefined;
 
   const result = await generateMockup(job.silhouette, job.color, job.variation, placement);
-
-  const uploadTasks: Promise<string>[] = [];
 
   for (const field of ["filePath1600", "filePath1024", "filePath640", "filePathJpg"] as const) {
     const localPath = result[field];
@@ -36,15 +57,9 @@ async function processJob(job: MockupJob): Promise<void> {
     const fullPath = path.resolve(process.cwd(), "client/public", localPath.startsWith("/") ? localPath.slice(1) : localPath);
 
     const buffer = await fs.readFile(fullPath);
-    uploadTasks.push(
-      uploadMockupBuffer(buffer, filename, contentType).then(objectPath => {
-        (result as any)[field] = objectPath;
-        return objectPath;
-      })
-    );
+    const objectPath = await uploadMockupBuffer(buffer, filename, contentType);
+    (result as any)[field] = objectPath;
   }
-
-  await Promise.all(uploadTasks);
 
   await storage.createMockup({
     silhouette: result.silhouette,
@@ -98,8 +113,9 @@ async function pollAndProcess(): Promise<void> {
   }
 }
 
-export function startMockupWorker(): void {
+export async function startMockupWorker(): Promise<void> {
   if (workerInterval) return;
+  await recoverStuckJobs();
   console.log("[worker] Mockup background worker started");
   workerInterval = setInterval(pollAndProcess, POLL_INTERVAL_MS);
 }
