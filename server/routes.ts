@@ -11,6 +11,8 @@ import { generateCSV, GENERATED_DIR, BRAND_ASSETS_DIR, DEFAULT_PLACEMENTS, getVa
 import { registerObjectStorageRoutes, ObjectStorageService } from "./replit_integrations/object_storage";
 import { startMockupWorker } from "./lib/mockup-worker";
 import crypto from "crypto";
+import { getCatalog, getCatalogByHandle } from "./lib/shopify-catalog";
+import { logQAReport } from "./lib/catalog-qa";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "client/public/uploads/brand-assets");
 
@@ -63,6 +65,36 @@ export async function registerRoutes(
   registerObjectStorageRoutes(app);
 
   startMockupWorker();
+
+  getCatalog().then(catalog => {
+    logQAReport(catalog);
+  }).catch(err => {
+    console.error("[startup] Failed to run catalog QA:", err);
+  });
+
+  app.get("/api/catalog", async (_req, res) => {
+    try {
+      const catalog = await getCatalog();
+      res.json(catalog);
+    } catch (err) {
+      console.error("Failed to fetch catalog:", err);
+      res.status(500).json({ message: "Failed to fetch catalog" });
+    }
+  });
+
+  app.get("/api/catalog/:handle", async (req, res) => {
+    try {
+      const catalog = await getCatalog();
+      const design = getCatalogByHandle(catalog, req.params.handle);
+      if (!design) {
+        return res.status(404).json({ message: "Design not found" });
+      }
+      res.json(design);
+    } catch (err) {
+      console.error("Failed to fetch design:", err);
+      res.status(500).json({ message: "Failed to fetch design" });
+    }
+  });
 
   const objStorage = new ObjectStorageService();
   app.get(/^\/storage\/(.+)$/, async (req, res) => {

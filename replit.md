@@ -1,28 +1,40 @@
 # DISTRICT21 - Fashion Launch Microsite
 
 ## Overview
-Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white branding. Features waitlist collection, countdown timer, drop management, automated mockup generation pipeline, and admin panel.
+Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white branding. Features waitlist collection, countdown timer, drop management, automated mockup generation pipeline, admin panel, and unified Shopify catalog integration.
 
 ## Architecture
 - **Frontend**: React + Vite + Tailwind CSS + wouter routing
 - **Backend**: Express.js API
 - **Database**: PostgreSQL with Drizzle ORM
+- **Catalog Source**: Shopify public products.json endpoint (district21.co)
 - **Image Processing**: Sharp (compositing, resizing, WebP/JPG export)
 - **Analytics**: PostHog (optional, provide VITE_POSTHOG_KEY env var)
 
+## Catalog System
+- **Source of truth**: Shopify store at district21.co via `/products.json` public endpoint
+- **Normalization**: 36 Shopify product listings → 4 deduplicated designs with color variants
+- **Caching**: Server-side 5-minute TTL cache with stale fallback on fetch failure
+- **QA Report**: Runs on startup, flags missing images, blank garments, missing colors, out-of-stock variants
+- **Blank filtering**: Images with "blank", "flat", "template", or "unbranded" in filename/alt are auto-excluded
+- **Current catalog**: Freestyler T-Shirt (£69), Voicer Hoodie (£125), Hypster T-Shirt (£69), Ryler Sweatshirt (£109)
+- **Adding products**: Add new products to Shopify store → they auto-appear on drops site within 5 minutes
+
 ## Pages
-- `/` - Home: Full-viewport editorial lifestyle hero banner with dark wash overlay, DISTRICT21 logo + tagline overlaid, drop state toggle (pre/live/post), inline waitlist with privacy microcopy, sticky mobile CTA, product grid, social proof
-- `/drop` - Drop: Pre-drop state (countdown + notify CTA) / Live (shop link) / Post-drop (join next drop), product grid
-- `/product/:id` - Product Detail Page (PDP): Hero image, gallery, product details, waitlist/shop CTA
+- `/` - Home: Full-viewport editorial lifestyle hero banner with dark wash overlay, DISTRICT21 logo + tagline overlaid, drop state toggle (pre/live/post), inline waitlist with privacy microcopy, sticky mobile CTA, Shopify product grid, social proof
+- `/drop` - Drop: Pre-drop state (countdown + notify CTA) / Live (shop link) / Post-drop (join next drop), Shopify product grid
+- `/product/:handle` - Product Detail Page (PDP): Hero image from Shopify, color variant selector, size selector, variant-scoped image gallery, price, product details, "Add to Bag" / waitlist CTA
 - `/about` - About: Brand story and stats
 - `/contact` - Contact: Contact form
 - `/admin` - Admin panel (password protected via SESSION_SECRET env var)
 
 ## Key Files
-- `shared/schema.ts` - Data models (leads, dropSettings, users, brandAssets, mockupPresets, mockups, mockupJobs)
+- `shared/schema.ts` - Data models (leads, dropSettings, users, brandAssets, mockupPresets, mockups, mockupJobs, CatalogDesign types)
 - `server/routes.ts` - API endpoints
 - `server/storage.ts` - Database operations
 - `server/db.ts` - Database connection
+- `server/lib/shopify-catalog.ts` - Shopify catalog fetcher and normalizer (deduplication, caching, blank filtering)
+- `server/lib/catalog-qa.ts` - Catalog quality assurance checks (logs warnings on startup)
 - `server/lib/mockup-engine.ts` - Sharp-based mockup compositing engine
 - `server/lib/mockup-worker.ts` - Background job processor (polls queued jobs, processes with retry logic)
 - `server/lib/mockup-storage.ts` - Object storage upload helper for generated assets
@@ -44,6 +56,8 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - **Brand assets**: Defaults from logo-wordmark.jpeg, logo-icon.jpeg, logo-hero.jpeg; can be overridden via admin upload
 
 ## API Routes
+- `GET /api/catalog` - Get full normalized Shopify catalog (deduplicated designs)
+- `GET /api/catalog/:handle` - Get single design with all color/size variants
 - `GET /api/drop-settings` - Get drop configuration
 - `POST /api/leads` - Submit waitlist signup
 - `POST /api/contact` - Submit contact form
@@ -93,3 +107,4 @@ Mobile-first launch microsite for fashion brand DISTRICT21 with black-and-white 
 - 2026-02-08: Editorial lifestyle hero banner — full-viewport background image with dark gradient wash, white logo/text overlay, hero-variant styling for WaitlistForm and Countdown components
 - 2026-02-10: Added Chaser hoodie and Hat silhouettes to product catalog (10 products total), converted PDF design files to product images, updated mockup engine with hat placements, regenerated 48 total mockups
 - 2026-02-20: Async mockup generation pipeline — job queue with background worker, retry logic (3 attempts), object storage (GCS) for generated assets, approval gating before Shopify publish, admin UI with real-time job status tracking and batch approval controls
+- 2026-02-26: Shopify catalog unification — replaced hardcoded SILHOUETTES product arrays with live Shopify catalog, normalized 36 listings into 4 deduplicated designs, rebuilt homepage/drop/PDP with Shopify images, added color/size variant selectors on PDP, eliminated blank garments, added catalog QA report, variant-specific "Add to Bag" URLs

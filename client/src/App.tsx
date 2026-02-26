@@ -40,7 +40,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/drop" component={Drop} />
-        <Route path="/product/:id" component={Product} />
+        <Route path="/product/:handle" component={Product} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
         <Route component={NotFound} />

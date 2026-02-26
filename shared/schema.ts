@@ -178,3 +178,32 @@ export const SILHOUETTES = [
 export const TEE_VARIATIONS = ["bold", "tagline", "icon"] as const;
 export const HOODIE_SWEAT_VARIATIONS = ["wordmark", "icon"] as const;
 export const HAT_VARIATIONS = ["wordmark", "icon"] as const;
+
+export interface CatalogImage {
+  src: string;
+  alt: string;
+}
+
+export interface CatalogSizeVariant {
+  size: string;
+  available: boolean;
+  variantId: number;
+}
+
+export interface CatalogColorVariant {
+  color: string;
+  price: string;
+  images: CatalogImage[];
+  sizes: CatalogSizeVariant[];
+  shopifyHandle: string;
+  shopifyUrl: string;
+}
+
+export interface CatalogDesign {
+  designId: string;
+  handle: string;
+  title: string;
+  type: string;
+  fit: string;
+  colors: CatalogColorVariant[];
+}

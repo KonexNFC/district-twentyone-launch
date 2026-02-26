@@ -5,16 +5,7 @@ import { WaitlistForm } from "@/components/waitlist-form";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Bell } from "lucide-react";
-import type { DropSettings, Mockup } from "@shared/schema";
-import { SILHOUETTES } from "@shared/schema";
-
-const products = SILHOUETTES.map(s => ({
-  id: s.id,
-  name: s.name,
-  type: s.fit,
-  black: `/images/products/${s.id}-black.jpg`,
-  white: `/images/products/${s.id}-white.jpg`,
-}));
+import type { DropSettings, CatalogDesign } from "@shared/schema";
 
 export default function Drop() {
   usePageTitle("The Drop | DISTRICT21", "Exclusive limited edition drops from DISTRICT21. Get notified before they sell out.");
@@ -22,8 +13,8 @@ export default function Drop() {
     queryKey: ["/api/drop-settings"],
   });
 
-  const { data: allMockups = [] } = useQuery<Mockup[]>({
-    queryKey: ["/api/mockups"],
+  const { data: catalog = [] } = useQuery<CatalogDesign[]>({
+    queryKey: ["/api/catalog"],
   });
 
   if (isLoading) {
@@ -71,7 +62,7 @@ export default function Drop() {
                 data-testid="button-shop-now"
               >
                 <a href={settings?.shopifyUrl || "#"} target="_blank" rel="noopener noreferrer">
-                  SHOP NOW <ExternalLink className="w-4 h-4 ml-2" />
+                  SHOP DROP 001 <ExternalLink className="w-4 h-4 ml-2" />
                 </a>
               </Button>
             </div>
@@ -114,40 +105,49 @@ export default function Drop() {
             The Collection
           </p>
           <p className="text-xs tracking-[0.2em] text-muted-foreground/60 uppercase text-center mb-12">
-            12 Pieces &middot; Black &amp; White &middot; Limited Edition
+            {catalog.length} Pieces &middot; Limited Edition
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((item) => {
-              const mockup = allMockups.find(m => m.silhouette === item.id && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
-              const mockupWhite = allMockups.find(m => m.silhouette === item.id && m.color === "white" && (m.variation === "bold" || m.variation === "wordmark"));
+            {catalog.map((design) => {
+              const defaultColor = design.colors[0];
+              const altColor = design.colors.length > 1 ? design.colors[1] : null;
+              const primaryImage = defaultColor?.images[0]?.src;
+              const hoverImage = altColor?.images[0]?.src || defaultColor?.images[1]?.src;
+
+              if (!primaryImage) return null;
 
               return (
-                <Link key={item.id} href={`/product/${item.id}`}>
+                <Link key={design.handle} href={`/product/${design.handle}`}>
                   <div
                     className="flex flex-col items-center gap-3 group cursor-pointer"
-                    data-testid={`drop-product-${item.id}`}
+                    data-testid={`drop-product-${design.handle}`}
                   >
-                    <div className="aspect-square w-full bg-card overflow-hidden relative">
+                    <div className="aspect-[4/5] w-full bg-card overflow-hidden relative">
                       <img
-                        src={mockup?.filePath640 || item.black}
-                        alt={mockup?.altText || `${item.name} - Black`}
-                        className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+                        src={primaryImage}
+                        alt={`District21 ${design.title} - ${defaultColor.color}`}
+                        className="w-full h-full object-cover absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
                         loading="lazy"
                       />
-                      <img
-                        src={mockupWhite?.filePath640 || item.white}
-                        alt={mockupWhite?.altText || `${item.name} - White`}
-                        className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                        loading="lazy"
-                      />
+                      {hoverImage && (
+                        <img
+                          src={hoverImage}
+                          alt={`District21 ${design.title} - ${altColor?.color || defaultColor.color}`}
+                          className="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          loading="lazy"
+                        />
+                      )}
                     </div>
                     <div className="flex flex-col items-center gap-0.5">
                       <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
-                        {item.name}
+                        District21 {design.title}
                       </span>
                       <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-                        {item.type}
+                        {design.fit}
+                      </span>
+                      <span className="text-xs tracking-[0.1em] text-muted-foreground mt-1">
+                        £{defaultColor.price}
                       </span>
                     </div>
                   </div>

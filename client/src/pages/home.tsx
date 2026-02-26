@@ -6,16 +6,7 @@ import { StickyMobileCTA } from "@/components/sticky-mobile-cta";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { DropSettings, Mockup } from "@shared/schema";
-import { SILHOUETTES } from "@shared/schema";
-
-const products = SILHOUETTES.map(s => ({
-  id: s.id,
-  name: s.name,
-  type: s.fit,
-  black: `/images/products/${s.id}-black.jpg`,
-  white: `/images/products/${s.id}-white.jpg`,
-}));
+import type { DropSettings, CatalogDesign } from "@shared/schema";
 
 const socialProof = ["HYPEBEAST", "HIGHSNOBIETY", "COMPLEX", "GQ", "SSENSE"];
 
@@ -37,12 +28,11 @@ export default function Home() {
     queryKey: ["/api/drop-settings"],
   });
 
-  const { data: allMockups = [] } = useQuery<Mockup[]>({
-    queryKey: ["/api/mockups"],
+  const { data: catalog = [] } = useQuery<CatalogDesign[]>({
+    queryKey: ["/api/catalog"],
   });
 
   const dropState = getDropState(settings);
-  const heroMockup = allMockups.find(m => m.silhouette === "freestyler" && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
 
   return (
     <div className="flex flex-col">
@@ -130,38 +120,47 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((item) => {
-              const mockup = allMockups.find(m => m.silhouette === item.id && m.color === "black" && (m.variation === "bold" || m.variation === "wordmark"));
-              const mockupWhite = allMockups.find(m => m.silhouette === item.id && m.color === "white" && (m.variation === "bold" || m.variation === "wordmark"));
+            {catalog.map((design) => {
+              const defaultColor = design.colors[0];
+              const altColor = design.colors.length > 1 ? design.colors[1] : null;
+              const primaryImage = defaultColor?.images[0]?.src;
+              const hoverImage = altColor?.images[0]?.src || defaultColor?.images[1]?.src;
+
+              if (!primaryImage) return null;
 
               return (
-                <Link key={item.id} href={`/product/${item.id}`}>
+                <Link key={design.handle} href={`/product/${design.handle}`}>
                   <div
                     className="flex flex-col items-center gap-3 group cursor-pointer"
-                    data-testid={`product-card-${item.id}`}
+                    data-testid={`product-card-${design.handle}`}
                   >
-                    <div className="aspect-square w-full bg-card overflow-hidden relative">
+                    <div className="aspect-[4/5] w-full bg-card overflow-hidden relative">
                       <img
-                        src={mockup?.filePath640 || item.black}
-                        alt={mockup?.altText || `${item.name} - Black`}
-                        className="w-full h-full object-contain p-3 absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+                        src={primaryImage}
+                        alt={`District21 ${design.title} - ${defaultColor.color}`}
+                        className="w-full h-full object-cover absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
                         loading="lazy"
-                        data-testid={`img-product-${item.id}-black`}
+                        data-testid={`img-product-${design.handle}-primary`}
                       />
-                      <img
-                        src={mockupWhite?.filePath640 || item.white}
-                        alt={mockupWhite?.altText || `${item.name} - White`}
-                        className="w-full h-full object-contain p-3 absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                        loading="lazy"
-                        data-testid={`img-product-${item.id}-white`}
-                      />
+                      {hoverImage && (
+                        <img
+                          src={hoverImage}
+                          alt={`District21 ${design.title} - ${altColor?.color || defaultColor.color}`}
+                          className="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          loading="lazy"
+                          data-testid={`img-product-${design.handle}-hover`}
+                        />
+                      )}
                     </div>
                     <div className="flex flex-col items-center gap-0.5">
                       <span className="text-xs sm:text-sm tracking-[0.15em] font-medium uppercase">
-                        {item.name}
+                        District21 {design.title}
                       </span>
                       <span className="text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-                        {item.type}
+                        {design.fit}
+                      </span>
+                      <span className="text-xs tracking-[0.1em] text-muted-foreground mt-1">
+                        £{defaultColor.price}
                       </span>
                     </div>
                   </div>

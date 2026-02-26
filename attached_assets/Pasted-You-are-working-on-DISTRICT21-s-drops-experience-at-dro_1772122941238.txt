@@ -1,0 +1,83 @@
+You are working on DISTRICT21’s drops experience at drops.district21.co. The Shopify store at district21.co is the source of truth for product naming, pricing, variants, and imagery. Currently the drops site is inconsistent: blank garments appear, and some products show black + white variants on the same PDP without proper variant switching. The two properties look like different brands. Fix this by enforcing one unified catalog, one design system, and one imagery standard.
+
+Objective
+Make drops.district21.co visually and commercially consistent with district21.co:
+	•	Same products, same design names, same mockups, same brand styling.
+	•	One PDP per product (design), with color/size as variants via selector.
+	•	No blank garments unless explicitly flagged as “blank” (should be excluded from drops).
+	•	No mixing multiple colorways’ images at once; show only the selected variant’s images.
+
+Scope of Work
+	1.	Single Source of Truth (Catalog Unification)
+
+	•	Replace any hardcoded/local product arrays with Shopify Storefront API (preferred) OR a single exported JSON generated from Shopify.
+	•	Build a normalized internal model:
+	•	designId (stable handle, e.g., voicer-hoodie)
+	•	title (e.g., “District21 Voicer Hoodie”)
+	•	variants[]: { variantId, color, size, price, available, images[] }
+	•	defaultVariantId
+	•	Ensure each design renders once in collection grids (no duplicates).
+
+	2.	Variant Correctness (No Mixed Mockups)
+
+	•	On PDP:
+	•	Default to defaultVariantId.
+	•	When user changes color/size, update:
+	•	price
+	•	availability
+	•	images carousel (ONLY images mapped to that variant)
+	•	selected variant in “Add to cart”
+	•	Do not show images from other variants in the same carousel.
+	•	If Shopify images are not variant-mapped, implement a deterministic mapping rule:
+	•	Match by filename tags or alt text containing color (e.g., “black”, “white”).
+	•	Fallback: first N images as the default variant only.
+
+	3.	Imagery Standard (Brand Consistency)
+
+	•	Enforce “mockup-first” policy:
+	•	For each variant require at least 2 images:
+	1.	primary front mockup (on-body or studio)
+	2.	secondary angle/back
+	•	If an image is a blank garment (detected via filename/alt containing blank, flat, template or missing branding), exclude it from drops by default.
+	•	Add a build-time “catalog QA” report that flags:
+	•	variants with <2 mockups
+	•	designs using blank imagery
+	•	missing color tags
+	•	duplicate handles/titles
+
+	4.	Design System Alignment
+
+	•	Implement a shared theme config (colors, typography, spacing) to match DISTRICT21:
+	•	Black/white base, neutral greys, minimal UI, consistent button styles.
+	•	Ensure logo, header, footer, and product card layout matches the main brand tone.
+	•	Lock in consistent copy rules:
+	•	Product titles always prefixed “District21 …”
+	•	Drop label format: “Drop 001 / Drop 002 …”
+	•	CTA language: “Shop Drop”, “Add to Bag”, “Select Size”
+
+	5.	Routing + Merchandising
+
+	•	Collection pages should use Shopify collections (e.g., t-shirts, hoodies, sweatshirts) and return a de-duped list by designId.
+	•	PDP route should be /product/:handle (one handle per design).
+	•	If you currently have separate “white product page” and “black product page”, merge them into one product with variants.
+
+Implementation Notes
+	•	Create modules:
+	•	lib/shopifyClient.ts (Storefront API client)
+	•	lib/catalogNormalize.ts (raw → normalized design/variant model)
+	•	lib/catalogQA.ts (QA checks + console report)
+	•	components/VariantSelector.tsx
+	•	components/ProductGallery.tsx (variant-scoped images)
+	•	Add caching (ISR or server cache) so catalog loads fast.
+
+Acceptance Criteria (Definition of Done)
+	•	On drops homepage/collections: each design appears once (no repeated tiles).
+	•	On PDP: switching color changes only to that color’s images; no mixed color mockups.
+	•	Zero blank garments displayed across drops unless explicitly allowed.
+	•	Visual style (spacing, typography, buttons, header/footer) aligns with main brand.
+	•	QA report runs on build and prints actionable warnings (does not block build unless critical).
+
+Deliver the updated code and a short README describing:
+	•	where catalog is sourced
+	•	how variant-image mapping works
+	•	how to add a new Drop without breaking consistency
